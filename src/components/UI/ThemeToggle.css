@@ -1,0 +1,147 @@
+/* ── Rollback Ball 3D Toggle Switch ── */
+
+.rollball-track {
+  position: relative;
+  width: 68px;
+  height: 34px;
+  border-radius: 34px;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  outline: none;
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: background 0.5s ease, box-shadow 0.4s ease;
+}
+
+/* ── Dark mode track: deep navy ── */
+.rollball-track.dark {
+  background: linear-gradient(135deg, #0B1220 0%, #111827 100%);
+  box-shadow:
+    0 0 0 1.5px rgba(192, 132, 252, 0.45),
+    0 4px 14px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+/* ── Light mode track: lavender/white ── */
+.rollball-track.light {
+  background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 60%, #C7D2FE 100%);
+  box-shadow:
+    0 0 0 1.5px rgba(79, 70, 229, 0.4),
+    0 4px 14px rgba(79, 70, 229, 0.15),
+    inset 0 1px 0 rgba(255,255,255,0.7);
+}
+
+/* ── Stars (visible in dark mode) ── */
+.rollball-star {
+  position: absolute;
+  border-radius: 50%;
+  background: white;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.rollball-track.dark .rollball-star { opacity: 1; }
+
+.rollball-star.s1 { width: 3px; height: 3px; top: 8px;  left: 14px; animation: twinkle 2.2s infinite; }
+.rollball-star.s2 { width: 2px; height: 2px; top: 20px; left: 22px; animation: twinkle 1.7s infinite 0.5s; }
+.rollball-star.s3 { width: 2px; height: 2px; top: 12px; left: 32px; animation: twinkle 2.5s infinite 1s; }
+
+@keyframes twinkle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.3; transform: scale(0.5); }
+}
+
+/* ── Sun rays (visible in light mode) ── */
+.rollball-ray {
+  position: absolute;
+  width: 2px;
+  height: 6px;
+  background: #818CF8;
+  border-radius: 2px;
+  top: 50%;
+  left: 14px;
+  transform-origin: center 20px;
+  transform: rotate(calc(var(--i) * 45deg)) translateY(-20px);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.rollball-track.light .rollball-ray { opacity: 0.85; }
+
+/* ── Ball ── */
+.rollball-ball {
+  position: absolute;
+  top: 4px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* 3D perspective for the cube faces */
+  transform-style: preserve-3d;
+
+  /* dark → left side, light → right side */
+  transition: left 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* rolling spin on move */
+  animation: none;
+}
+
+.rollball-track.dark  .rollball-ball { left: 4px;  animation: rollLeft  0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+.rollball-track.light .rollball-ball { left: 38px; animation: rollRight 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+@keyframes rollRight {
+  0%   { left: 4px;  transform: rotate3d(0,0,1, 0deg); }
+  100% { left: 38px; transform: rotate3d(0,0,1, -360deg); }
+}
+
+@keyframes rollLeft {
+  0%   { left: 38px; transform: rotate3d(0,0,1, 0deg); }
+  100% { left: 4px;  transform: rotate3d(0,0,1, 360deg); }
+}
+
+/* ── Ball gradient skin ── */
+.rollball-ball::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  transition: background 0.5s ease, box-shadow 0.5s ease;
+  z-index: 0;
+}
+
+.rollball-track.dark .rollball-ball::before {
+  background: radial-gradient(circle at 35% 35%, #FFD580 0%, #6366F1 45%, #A86010 100%);
+  box-shadow: 0 2px 8px rgba(99, 102, 241,0.7), 0 0 20px rgba(99, 102, 241,0.35), inset 0 -2px 4px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.3);
+}
+
+.rollball-track.light .rollball-ball::before {
+  background: radial-gradient(circle at 35% 35%, #A8EEFF 0%, #818CF8 40%, #007A9C 100%);
+  box-shadow: 0 2px 8px rgba(129, 140, 248,0.65), 0 0 20px rgba(129, 140, 248,0.3), inset 0 -2px 4px rgba(0,0,0,0.25), inset 0 2px 4px rgba(255,255,255,0.35);
+}
+
+/* ── Inner icon (moon / sun emoji) ── */
+.rollball-inner-icon {
+  position: relative;
+  z-index: 1;
+  font-size: 14px;
+  line-height: 1;
+  user-select: none;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4));
+  transition: opacity 0.25s ease;
+}
+
+/* hide cube faces — purely decorative structure, skin comes from ::before */
+.rollball-face {
+  display: none;
+}
+
+/* ── Hover lift ── */
+.rollball-track:hover {
+  transform: scale(1.04);
+}
+.rollball-track:active {
+  transform: scale(0.97);
+}
+

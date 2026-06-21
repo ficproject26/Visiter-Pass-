@@ -1,0 +1,61 @@
+/* print.css */
+
+@media print {
+  @page {
+    size: auto;
+    margin: 0mm; /* Hide default browser headers/footers */
+  }
+
+  /* Reset all backgrounds and force color printing */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* Hide absolutely everything by default */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Only show the print container and its children */
+  #printable-visitor-pass, #printable-visitor-pass * {
+    visibility: visible;
+  }
+
+  /* Position the print container exactly at the top left of the page */
+  #printable-visitor-pass {
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin: 0;
+    padding: 0;
+    width: 350px !important; /* Fixed dimension for badge */
+    height: 550px !important; /* Fixed dimension for badge */
+    page-break-after: always;
+    box-shadow: none !important;
+    border: none !important;
+    background: white !important;
+    transform: none !important;
+  }
+
+  /* Ensure QR code remains sharp */
+  #printable-visitor-pass img {
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -o-crisp-edges;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    -ms-interpolation-mode: nearest-neighbor;
+  }
+
+  /* Hide buttons, navigation, and specific UI elements during print */
+  .no-print,
+  button,
+  header,
+  footer,
+  .print-controls {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+  }
+}

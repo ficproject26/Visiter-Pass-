@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id          String    @id @default(uuid()) @map("_id")
+  name        String
+  domain      String?   @unique
+  logoUrl     String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  users       User[]
+  visitors    Visitor[]
+}
+
+model User {
+  id          String    @id @default(uuid()) @map("_id")
+  email       String    @unique
+  password    String
+  name        String
+  role        Role      @default(EMPLOYEE)
+  tenantId    String
+  tenant      Tenant    @relation(fields: [tenantId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+enum Role {
+  SUPER_ADMIN
+  ORG_ADMIN
+  HR
+  SECURITY
+  RECEPTIONIST
+  EMPLOYEE
+}
+
+model Visitor {
+  id              String    @id @default(uuid()) @map("_id")
+  visitorId       String    @unique // E.g., V123
+  tenantId        String
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+  
+  // Personal Info
+  visitorType     String
+  fullName        String
+  email           String
+  phone           String
+  gender          String?
+
+  // Identity
+  idType          String
+  idNumber        String
+  idProofUrl      String?
+  photoUrl        String?
+
+  // Visit Info
+  purpose         String
+  personToMeet    String
+  department      String
+  branch          String
+  visitDate       DateTime
+  checkInTime     String?
+  checkOutTime    String?
+  vehicleNumber   String?
+
+  // Extra Specific
+  companyName     String?
+  positionApplied String?
+  meetingAgenda   String?
+
+  // Status
+  status          VisitorStatus @default(PENDING)
+  approvalStatus  ApprovalStatus @default(PENDING)
+  riskScore       RiskScore     @default(LOW_RISK)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+enum VisitorStatus {
+  PENDING
+  CHECKED_IN
+  CHECKED_OUT
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum RiskScore {
+  LOW_RISK
+  MEDIUM_RISK
+  HIGH_RISK
+}
+
+model Employee {
+  id          String   @id @default(uuid()) @map("_id")
+  empId       String   @unique
+  name        String
+  email       String   @unique
+  password    String
+  role        String
+  department  String
+  location    String
+  status      String   @default("active")
+  photoUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
