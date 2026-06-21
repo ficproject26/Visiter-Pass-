@@ -1,11 +1,13 @@
 generator client {
   provider = "prisma-client-js"
+  engineType = "library"
 }
 
 datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
 }
+
 
 model Tenant {
   id          String    @id @default(uuid()) @map("_id")
