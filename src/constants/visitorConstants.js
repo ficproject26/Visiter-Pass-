@@ -7,18 +7,12 @@ export const MOCK_VISITORS = [
   { id: "V006", fullName: "Meera Iyer", phone: "9654321000", email: "meera.i@corp.com", idType: "Voter ID", idNumber: "ABC1234567", purpose: "Audit", personToMeet: "CFO Office", department: "Finance", branch: "Chennai", visitDate: "2026-06-13", checkInTime: "10:00", vehicleNumber: "", emergencyContact: "9654300000", status: "checked-out", approvalStatus: "approved", checkOutTime: "17:00", photo: null },
 ];
 
-export const DEPARTMENTS = ["Engineering", "HR", "Finance", "Sales", "Operations", "Marketing", "Legal", "IT", "Admin"];
+export const DEPARTMENTS = ["Admin", "Security", "HR"];
 
 export const DEPARTMENT_ROLES = {
-  "Engineering": ["Software Engineer", "Frontend Developer", "Backend Developer", "DevOps Engineer", "QA Engineer", "Engineering Manager"],
+  "Admin": ["Administrator", "Office Manager", "Executive Assistant", "Sub Admin"],
+  "Security": ["Security Officer", "Security Guard", "Security Supervisor", "Security Manager"],
   "HR": ["HR Manager", "Recruiter", "HR Coordinator", "HR Business Partner"],
-  "Finance": ["Accountant", "Financial Analyst", "CFO", "Payroll Specialist", "Auditor", "Finance Manager"],
-  "Sales": ["Account Executive", "Sales Manager", "Sales Representative", "VP of Sales"],
-  "Operations": ["Operations Manager", "Supply Chain Analyst", "Logistics Coordinator"],
-  "Marketing": ["Marketing Manager", "SEO Specialist", "Content Writer", "Social Media Manager"],
-  "Legal": ["Legal Counsel", "Paralegal", "Compliance Officer"],
-  "IT": ["IT Support Specialist", "System Administrator", "Network Engineer", "IT Manager"],
-  "Admin": ["Administrator", "Office Manager", "Executive Assistant"],
   "Sub Admin": ["Sub Administrator", "Assistant Manager"]
 };
 

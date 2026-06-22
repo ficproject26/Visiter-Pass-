@@ -371,14 +371,14 @@ export default function RegistrationForm({ onNavigate: externalOnNavigate, onNew
   return (
     <div style={{ minHeight: "100vh", background: isDark ? "#08262b" : "#F8FAFC", fontFamily: "var(--font-primary)" }}>
       {/* Navbar Header */}
-      <header style={{ background: "linear-gradient(135deg, #0f0c29 0%, #1e1b4b 100%)", padding: "1.25rem 2rem", display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "var(--shadow-md)" }}>
+      <header style={{ background: "linear-gradient(135deg, #0f0c29 0%, #1e1b4b 100%)", padding: "1rem 1.5rem", display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center", justifyContent: "space-between", boxShadow: "var(--shadow-md)" }}>
         <BrandLogo onNavigate={onNavigate} variant="header" isDark={true} />
         <button
           onClick={() => onNavigate("landing")}
           className="btn btn-secondary"
-          style={{ background: "rgba(255, 255, 255, 0.1)", border: "1px solid rgba(255, 255, 255, 0.15)", color: "white", padding: "6px 14px", fontSize: 13 }}
+          style={{ background: "rgba(255, 255, 255, 0.1)", border: "1px solid rgba(255, 255, 255, 0.15)", color: "white", padding: "6px 14px", fontSize: 13, whiteSpace: "nowrap" }}
         >
-          ← Exit Registration
+          ← Exit
         </button>
       </header>
 
@@ -646,7 +646,7 @@ export default function RegistrationForm({ onNavigate: externalOnNavigate, onNew
           </motion.div>
 
           {/* Action buttons footer */}
-          <motion.div variants={fadeUpBounce} style={{ padding: "1.5rem 2rem", background: isDark ? "rgba(13,148,136,0.05)" : "#FFFFFF", borderRadius: 20, border: isDark ? "1px solid rgba(13,148,136,0.15)" : "1px solid rgba(15,23,42,0.05)", display: "flex", justifyItems: "end", justifyContent: "flex-end", gap: 16, boxShadow: "0 10px 30px -10px rgba(0,0,0,0.1)" }}>
+          <motion.div variants={fadeUpBounce} style={{ padding: "1.5rem 2rem", background: isDark ? "rgba(13,148,136,0.05)" : "#FFFFFF", borderRadius: 20, border: isDark ? "1px solid rgba(13,148,136,0.15)" : "1px solid rgba(15,23,42,0.05)", display: "flex", flexWrap: "wrap", justifyContent: "flex-end", gap: 16, boxShadow: "0 10px 30px -10px rgba(0,0,0,0.1)" }}>
             <button
               type="button"
               onClick={() => {
@@ -654,13 +654,14 @@ export default function RegistrationForm({ onNavigate: externalOnNavigate, onNew
                 setErrors({});
               }}
               className="btn btn-secondary"
+              style={{ whiteSpace: "nowrap" }}
             >
               Clear Form
             </button>
             <button
               type="submit"
               className="btn btn-primary"
-              style={{ padding: "11px 28px" }}
+              style={{ padding: "11px 28px", whiteSpace: "nowrap" }}
             >
               Register & Generate Pass →
             </button>

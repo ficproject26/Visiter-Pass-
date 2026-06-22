@@ -6,30 +6,35 @@ import { useTheme } from '../../context/ThemeContext';
 import { useData } from '../../context/DataContext';
 import { MapPin, Users, Building2, TrendingUp, MoreVertical, Search, Plus, CheckCircle2, AlertCircle } from 'lucide-react';
 
-export default function AllBranches() {
+export default function AllBranches({ setActiveTab }) {
   const { isDark } = useTheme();
-  const { employees, visitors } = useData();
+  const { employees, visitors, branches = [] } = useData();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
 
-  // Dynamically compute branches
+  // Dynamically compute branches merged with database branches
   const employeeBranches = employees.map(e => e.location);
   const visitorBranches = visitors.map(v => v.branch);
-  const allUniqueBranches = [...new Set([...employeeBranches, ...visitorBranches].filter(Boolean))];
+  const allUniqueBranchNames = [...new Set([
+    ...branches.map(b => b.name),
+    ...employeeBranches,
+    ...visitorBranches
+  ].filter(Boolean))];
 
-  const liveBranches = allUniqueBranches.map((branchName, idx) => {
+  const liveBranches = allUniqueBranchNames.map((branchName, idx) => {
+    const dbBranch = branches.find(b => b.name === branchName);
     const branchEmployees = employees.filter(e => e.location === branchName).length;
     const branchVisitors = visitors.filter(v => v.branch === branchName).length;
     return {
-      id: `BR-00${idx+1}`,
+      id: dbBranch?.id || `BR-00${idx+1}`,
       name: branchName,
-      city: branchName.split(' ')[0] || branchName,
-      state: '--',
-      manager: '--',
+      city: dbBranch?.city || branchName.split(' ')[0] || branchName,
+      state: dbBranch?.state || '--',
+      manager: dbBranch?.manager || '--',
       employees: branchEmployees,
       visitors: branchVisitors,
-      status: 'active',
-      type: idx === 0 ? 'Headquarters' : 'Branch'
+      status: dbBranch?.status || 'active',
+      type: dbBranch?.type || (idx === 0 ? 'Headquarters' : 'Branch')
     };
   });
 
@@ -64,7 +69,7 @@ export default function AllBranches() {
             <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: isDark ? '#64748b' : '#94a3b8' }} />
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search branches..." style={{ padding: '8px 14px 8px 34px', borderRadius: 10, background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)', border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)', color: isDark ? '#f8fafc' : '#0f172a', fontSize: 13, outline: 'none', width: 200 }} />
           </div>
-          <button style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: '#4f46e5', color: '#fff', fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+          <button onClick={() => setActiveTab && setActiveTab("create_branch")} style={{ padding: '8px 18px', borderRadius: 10, border: 'none', background: '#4f46e5', color: '#fff', fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
             <Plus size={16} /> Add Branch
           </button>
         </div>

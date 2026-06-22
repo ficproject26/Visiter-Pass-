@@ -63,7 +63,7 @@ const MetricCard = ({ title, value, subtitle, icon: Icon, color, isDark }) => (
 
 export default function SuperAdminDashboardOverview() {
   const { isDark } = useTheme();
-  const { visitors, employees } = useData();
+  const { visitors, employees, branches = [] } = useData();
 
   // Computations
   const todayStr = (() => {
@@ -77,6 +77,7 @@ export default function SuperAdminDashboardOverview() {
   const expiredPasses = visitors.filter(v => v.status === "CHECKED_OUT").length;
 
   const totalBranches = new Set([
+    ...branches.map(b => b.name),
     ...employees.map(e => e.location),
     ...visitors.map(v => v.branch)
   ].filter(Boolean)).size;

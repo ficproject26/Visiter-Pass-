@@ -470,7 +470,7 @@ export default function AdminDashboard({ visitors = [], onNavigate: externalOnNa
             </motion.div>
           )}
 
-          {activeTab === "all_branches"         && <AllBranches />}
+          {activeTab === "all_branches"         && <AllBranches setActiveTab={setActiveTab} />}
           {activeTab === "branch_analytics"     && <BranchAnalytics />}
           {activeTab === "create_branch"        && <CreateBranch />}
           {activeTab === "branch_performance"   && <BranchPerformance />}

@@ -7,21 +7,25 @@ const DataContext = createContext();
 export function DataProvider({ children }) {
   const [visitors, setVisitors] = useState([]);
   const [employees, setEmployees] = useState([]);
+  const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchLiveDatas = async () => {
     try {
       setLoading(true);
-      const [visRes, empRes] = await Promise.all([
+      const [visRes, empRes, branchRes] = await Promise.all([
         fetch(`${API_BASE_URL}/api/visitors`),
-        fetch(`${API_BASE_URL}/api/employees`)
+        fetch(`${API_BASE_URL}/api/employees`),
+        fetch(`${API_BASE_URL}/api/branches`).catch(() => null)
       ]);
       
       const visData = await visRes.json();
       const empData = await empRes.json();
+      const branchData = branchRes ? await branchRes.json() : [];
       
       if (Array.isArray(visData)) setVisitors(visData);
       if (Array.isArray(empData)) setEmployees(empData);
+      if (Array.isArray(branchData)) setBranches(branchData);
     } catch (err) {
       console.error("Failed to fetch live datas:", err);
     } finally {
@@ -34,7 +38,7 @@ export function DataProvider({ children }) {
   }, []);
 
   return (
-    <DataContext.Provider value={{ visitors, employees, loading, refreshData: fetchLiveDatas }}>
+    <DataContext.Provider value={{ visitors, employees, branches, loading, refreshData: fetchLiveDatas }}>
       {children}
     </DataContext.Provider>
   );

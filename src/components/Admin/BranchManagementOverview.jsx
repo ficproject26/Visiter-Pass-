@@ -12,12 +12,16 @@ import BranchPerformance from './BranchPerformance';
 
 export default function BranchManagementOverview({ setActiveTab }) {
   const { isDark } = useTheme();
-  const { employees, visitors } = useData();
+  const { employees, visitors, branches = [] } = useData();
 
   // --- COMPUTE LIVE STATS ---
   const employeeBranches = employees.map(e => e.location);
   const visitorBranches = visitors.map(v => v.branch);
-  const allUniqueBranches = new Set([...employeeBranches, ...visitorBranches].filter(Boolean));
+  const allUniqueBranches = new Set([
+    ...branches.map(b => b.name),
+    ...employeeBranches,
+    ...visitorBranches
+  ].filter(Boolean));
   
   const totalBranches = allUniqueBranches.size;
   const regions = new Set([...allUniqueBranches].map(b => b.split(' ')[0]));
@@ -83,7 +87,7 @@ export default function BranchManagementOverview({ setActiveTab }) {
 
       {/* 3. ALL BRANCHES LIST */}
       <motion.div variants={fadeUpBounce} style={{ ...glass, padding: 24 }}>
-        <AllBranches />
+        <AllBranches setActiveTab={setActiveTab} />
       </motion.div>
 
       {/* 4. BRANCH ANALYTICS */}
