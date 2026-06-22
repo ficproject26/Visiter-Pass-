@@ -40,7 +40,7 @@ export default function WebcamCapture({ onCapture, initialPhoto = null }) {
       }
       setCameraActive(true);
     } catch (err) {
-      console.error("Error accessing camera:", err);
+      console.warn("Error accessing camera:", err);
       setPermissionError("Camera access denied. Please upload a file instead.");
       setCameraActive(false);
     }
