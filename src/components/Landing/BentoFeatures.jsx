@@ -194,16 +194,11 @@ export default function BentoFeatures() {
 
         {/* Bento Grid */}
         <motion.div 
+          className="bento-grid-responsive"
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-50px" }}
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(12, 1fr)",
-            gridTemplateRows: "auto",
-            gap: 16,
-          }}
         >
           {features.map((f, i) => {
             const spanMap = { large: "span 5", tall: "span 4", small: "span 3", medium: "span 4", wide: "span 7" };

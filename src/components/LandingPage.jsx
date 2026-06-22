@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { Menu, X } from "lucide-react";
 import QRCode from "./UI/QRCode";
 import ThemeToggle from "./UI/ThemeToggle";
 import BrandLogo from "./UI/BrandLogo";
@@ -49,6 +50,7 @@ export default function LandingPage() {
 
   const [openFaq, setOpenFaq] = useState(null);
   const [showDemo, setShowDemo] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { isDark } = useTheme();
   const { scrollProgress } = useSmoothScroll();
 
@@ -91,7 +93,22 @@ export default function LandingPage() {
       <nav className={`landing-nav-container ${isDark ? 'dark' : 'light'}`}>
         <BrandLogo onNavigate={onNavigate} variant="landing" isDark={isDark} />
 
-        <div className="nav-actions">
+        <button 
+          className="mobile-menu-toggle"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          style={{ 
+            background: 'none', 
+            border: 'none', 
+            color: isDark ? '#fff' : '#000',
+            cursor: 'pointer',
+            padding: '8px',
+            display: 'none' /* Will be shown in CSS on mobile */
+          }}
+        >
+          {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+        </button>
+
+        <div className={`nav-actions ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
           <ThemeToggle />
           <button
             onClick={() => onNavigate("check-status")}

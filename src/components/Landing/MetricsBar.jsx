@@ -61,7 +61,7 @@ export default function MetricsBar() {
       borderTop: isDark ? "1px solid rgba(212,137,26,0.18)" : "1px solid rgba(212,137,26,0.15)",
       borderBottom: isDark ? "1px solid rgba(212,137,26,0.18)" : "1px solid rgba(212,137,26,0.15)",
     }}>
-      <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-50px" }} style={{ maxWidth: 1100, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 24 }}>
+      <motion.div className="metrics-grid" variants={container} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-50px" }} style={{ maxWidth: 1100, margin: "0 auto" }}>
         {metrics.map((m, i) => (
           <motion.div key={i} variants={item} whileHover={{ scale: 1.02 }} style={{
             textAlign: "center",

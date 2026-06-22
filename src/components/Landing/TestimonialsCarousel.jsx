@@ -70,18 +70,10 @@ export default function TestimonialsCarousel() {
           {marqueeItems.map((t, i) => (
             <div
               key={i}
+              className="testimonial-carousel-card"
               style={{
-                width: "350px",
-                whiteSpace: "normal",
                 background: isDark ? "rgba(20, 20, 25, 0.9)" : "rgba(255, 255, 255, 0.8)",
                 border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(79,70,229,0.15)",
-                borderRadius: "20px",
-                padding: "1.5rem",
-                display: "flex",
-                flexDirection: "column",
-                boxShadow: "0 10px 30px rgba(0,0,0,0.05)",
-                backdropFilter: "blur(12px)",
-                flexShrink: 0
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -120,13 +112,13 @@ export default function TestimonialsCarousel() {
           <div style={{
             display: "inline-flex",
             alignItems: "center",
-            gap: 16,
-            flexWrap: "wrap",
-            justifyContent: "center",
+            gap: 8,
+            flexWrap: "nowrap",
+            justifyContent: "space-between",
             background: isDark ? "rgba(255,255,255,0.03)" : "rgba(255, 255, 255, 0.4)", backdropFilter: "blur(10px)",
             border: isDark ? "1px solid rgba(212,137,26,0.12)" : "1px solid rgba(212,137,26,0.15)",
             borderRadius: 50,
-            padding: submittedFeedback ? "12px 24px" : "8px 8px 8px 24px",
+            padding: submittedFeedback ? "12px 24px" : "6px 6px 6px 16px",
             width: "100%",
             maxWidth: 550,
             transition: "all 0.3s ease"
@@ -150,7 +142,7 @@ export default function TestimonialsCarousel() {
                     outline: "none",
                     color: isDark ? "white" : "#1C1008",
                     fontSize: 14,
-                    minWidth: 200,
+                    minWidth: 0,
                   }}
                 />
                 <button 

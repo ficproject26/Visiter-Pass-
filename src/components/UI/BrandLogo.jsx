@@ -55,6 +55,7 @@ export default function BrandLogo({ onNavigate, variant = "landing", isDark = fa
           fontWeight: 800,
           letterSpacing: "-0.5px",
           color: isDark ? "white" : "#1C1008",
+          whiteSpace: "nowrap"
         }}
       >
         Forge India Connect

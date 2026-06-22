@@ -96,6 +96,10 @@ const FLOAT_STYLE = `
     gap: 48px;
     padding: 0 0.5rem;
   }
+  .hero-center {
+    align-items: center;
+    text-align: center;
+  }
   .hero-layout-spacer { display: none; }
   .hero-pass-side {
     justify-content: center;
@@ -106,6 +110,34 @@ const FLOAT_STYLE = `
     max-width: 340px;
     margin: 0 auto;
   }
+  .hero-buttons-container,
+  .hero-stats-container {
+    justify-content: center !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-gradient-text {
+    white-space: normal;
+    word-break: break-word;
+  }
+  .hero-layout {
+    padding: 0 0.2rem;
+  }
+}
+
+.hero-buttons-container {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 2.5rem;
+  justify-content: flex-start;
+}
+.hero-stats-container {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-start;
 }
 `;
 
@@ -253,7 +285,7 @@ export default function ParallaxHero({ onNavigate, onDemo }) {
               {activeQuote}
             </p>
 
-            <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: "2.5rem", justifyContent: "flex-start" }}>
+            <div className="hero-buttons-container">
               <MagneticButton strength={12} glowColor="#FFC72C">
                 <motion.button onClick={() => onNavigate("register")}
                   whileHover={{ scale: 1.03 }}
@@ -266,7 +298,7 @@ export default function ParallaxHero({ onNavigate, onDemo }) {
 
             </div>
 
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "flex-start" }}>
+            <div className="hero-stats-container">
               {[["50K+", "Visitors/mo"], ["500+", "Orgs"], ["99.9%", "Uptime"], ["10M+", "Records"]].map(([v, l]) => (
                 <div key={l} style={{ display: "flex", alignItems: "center", gap: 7, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(129, 140, 248,0.14)", borderRadius: 50, padding: "5px 13px" }}>
                   <span style={{ fontSize: 13, fontWeight: 900, color: "#818CF8" }}>{v}</span>

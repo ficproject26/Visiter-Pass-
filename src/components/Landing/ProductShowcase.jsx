@@ -105,7 +105,7 @@ export default function ProductShowcase() {
         </div>
 
         {/* Content */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40, alignItems: "center" }}>
+        <div className="product-showcase-grid">
           {/* Left: text */}
           <motion.div variants={slideInLeft}>
             <h3 style={{ fontSize: "1.6rem", fontWeight: 800, letterSpacing: "-0.5px", color: isDark ? "#FAF6F0" : "#1C1008", marginBottom: 12 }}>{tab.title}</h3>

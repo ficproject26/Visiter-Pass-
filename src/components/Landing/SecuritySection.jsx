@@ -21,7 +21,7 @@ export default function SecuritySection() {
   return (
     <section style={{ padding: "5rem 2rem", background: isDark ? "linear-gradient(135deg, rgba(13,148,136,0.05) 0%, rgba(8,145,178,0.03) 100%)" : "rgba(255,255,255,0.4)", backdropFilter: "blur(10px)" }}>
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center" }}>
+        <div className="security-grid-main">
 
           {/* Left text */}
           <motion.div 
@@ -63,7 +63,7 @@ export default function SecuritySection() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-50px" }}
-            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}
+            className="security-grid-cards"
           >
             {items.map((item, i) => (
               <motion.div key={i} variants={{ ...fadeUpBounce, ...zeroGravityFloat }} style={{ height: "100%" }}>

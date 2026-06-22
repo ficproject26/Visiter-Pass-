@@ -61,14 +61,12 @@ export default function VisitorJourney() {
         </motion.div>
 
         {/* Desktop timeline */}
-        <div style={{ display: "flex", alignItems: "flex-start", overflowX: "auto", paddingBottom: "1rem", gap: 0 }}>
+        <div className="visitor-journey-timeline">
           {steps.map((s, i) => (
-            <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", flex: "1 0 0", minWidth: 100, position: "relative" }}>
+            <div key={i} className="vj-step-container">
               {i < steps.length - 1 && (
-                <div style={{
-                  position: "absolute", top: 23, left: "50%", width: "100%", height: 2,
+                <div className="vj-connector-line" style={{
                   background: i < active ? `linear-gradient(90deg, ${s.color}, ${steps[i+1].color})` : isDark ? "rgba(255,255,255,0.08)" : "rgba(13,148,136,0.15)",
-                  transition: "background 0.5s ease",
                 }} />
               )}
               <div style={{
@@ -85,7 +83,7 @@ export default function VisitorJourney() {
                   return <Icon size={20} color={i <= active ? "#FFFFFF" : s.color} />;
                 })()}
               </div>
-              <div style={{ marginTop: 10, textAlign: "center", padding: "0 4px" }}>
+              <div className="vj-text-content">
                 <div style={{ fontSize: 11, fontWeight: 800, color: i <= active ? s.color : isDark ? "#F7F5F0" : "rgba(15,23,42,0.3)", marginBottom: 4, transition: "color 0.4s" }}>{`0${i+1}`}</div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: i <= active ? (isDark ? "white" : "#0f172a") : isDark ? "rgba(255,255,255,0.35)" : "rgba(15,23,42,0.35)", marginBottom: 4, transition: "color 0.4s" }}>{s.title}</div>
                 <div style={{ fontSize: 10.5, color: isDark ? "rgba(255,255,255,0.38)" : "rgba(15,23,42,0.45)", lineHeight: 1.5 }}>{s.desc}</div>
