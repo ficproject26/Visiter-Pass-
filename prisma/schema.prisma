@@ -129,6 +129,7 @@ model Branch {
   manager     String
   phone       String
   email       String
+  password    String?
   capacity    String?
   status      String   @default("active")
   createdAt   DateTime @default(now())

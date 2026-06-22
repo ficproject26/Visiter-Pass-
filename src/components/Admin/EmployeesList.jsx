@@ -4,11 +4,13 @@ import { useTheme } from "../../context/ThemeContext";
 import { motion } from "framer-motion";
 import { fadeUpBounce } from "../../utils/animations";
 import { useData } from "../../context/DataContext";
+import { useAuth } from "../../context/AuthContext";
 import { Loader2, Trash2 } from "lucide-react";
 import { API_BASE_URL } from "../../config/api";
 
 export default function EmployeesList({ newEmployee, onAddClick }) {
   const { employees, refreshData } = useData();
+  const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [filterDept, setFilterDept] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -17,7 +19,12 @@ export default function EmployeesList({ newEmployee, onAddClick }) {
   const [deletingId, setDeletingId] = useState(null);
 
   // If we needed to add a locally created employee optimistically before the DB updates
-  const displayEmployees = newEmployee ? [newEmployee, ...employees] : employees;
+  const rawEmployees = newEmployee ? [newEmployee, ...employees] : employees;
+
+  // Filter by logged-in subadmin's branch
+  const displayEmployees = user?.role === 'subadmin' && user?.branch
+    ? rawEmployees.filter(e => (e.location || '').toLowerCase() === user.branch.toLowerCase())
+    : rawEmployees;
 
   const departments = [...new Set(displayEmployees.map(e => e.department))].filter(Boolean);
 

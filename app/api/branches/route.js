@@ -27,6 +27,7 @@ export async function POST(req) {
         manager: data.manager,
         phone: data.phone,
         email: data.email,
+        password: data.password,
         capacity: data.capacity ? String(data.capacity) : null,
         status: data.status || 'active'
       }

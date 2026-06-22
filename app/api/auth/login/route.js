@@ -45,6 +45,21 @@ export async function POST(req) {
       });
     }
 
+    // 3. Check Database Branches (Branch Managers)
+    const branch = await prisma.branch.findFirst({
+      where: { email: email }
+    });
+
+    if (branch && branch.password === password) {
+      return NextResponse.json({
+        email: branch.email,
+        name: branch.manager || branch.name,
+        role: 'subadmin',
+        branch: branch.name,
+        empId: `MGR-${branch.id.substring(0, 5)}`
+      });
+    }
+
     return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
   } catch (err) {
     console.error(err);

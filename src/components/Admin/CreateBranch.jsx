@@ -14,7 +14,7 @@ export default function CreateBranch() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [form, setForm] = useState({ name: '', type: 'Branch', address: '', city: '', state: '', pincode: '', manager: '', phone: '', email: '', capacity: '' });
+  const [form, setForm] = useState({ name: '', type: 'Branch', address: '', city: '', state: '', pincode: '', manager: '', phone: '', email: '', password: '', capacity: '' });
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
 
   const handleSubmit = async (e) => {
@@ -64,7 +64,7 @@ export default function CreateBranch() {
           <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', color: '#10b981' }}><CheckCircle2 size={36} /></div>
           <h3 style={{ color: isDark ? '#f8fafc' : '#0f172a', fontSize: 22, fontWeight: 800, margin: '0 0 8px' }}>Branch Created Successfully!</h3>
           <p style={{ color: isDark ? '#94a3b8' : '#64748b', fontSize: 15 }}>"{form.name || 'New Branch'}" has been added to the system.</p>
-          <button onClick={() => { setSubmitted(false); setForm({ name: '', type: 'Branch', address: '', city: '', state: '', pincode: '', manager: '', phone: '', email: '', capacity: '' }); }} style={{ marginTop: 24, padding: '11px 28px', borderRadius: 12, border: 'none', background: '#4f46e5', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>Create Another</button>
+          <button onClick={() => { setSubmitted(false); setForm({ name: '', type: 'Branch', address: '', city: '', state: '', pincode: '', manager: '', phone: '', email: '', password: '', capacity: '' }); }} style={{ marginTop: 24, padding: '11px 28px', borderRadius: 12, border: 'none', background: '#4f46e5', color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>Create Another</button>
         </motion.div>
       ) : (
         <form onSubmit={handleSubmit}>
@@ -119,9 +119,12 @@ export default function CreateBranch() {
                 <div><label style={labelStyle}>Phone *</label><input required value={form.phone} onChange={set('phone')} placeholder="+91 98765 43210" style={inputStyle} /></div>
                 <div><label style={labelStyle}>Email *</label><input required type="email" value={form.email} onChange={set('email')} placeholder="manager@forgeindia.com" style={inputStyle} /></div>
               </div>
-              <div style={{ marginTop: 20 }}>
-                <label style={labelStyle}>Max Visitor Capacity / Day</label>
-                <input type="number" value={form.capacity} onChange={set('capacity')} placeholder="e.g. 100" style={{ ...inputStyle, maxWidth: 200 }} />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginTop: 20 }}>
+                <div><label style={labelStyle}>Manager Password *</label><input required type="password" value={form.password} onChange={set('password')} placeholder="Password" style={inputStyle} /></div>
+                <div>
+                  <label style={labelStyle}>Max Visitor Capacity / Day</label>
+                  <input type="number" value={form.capacity} onChange={set('capacity')} placeholder="e.g. 100" style={inputStyle} />
+                </div>
               </div>
             </motion.div>
 
@@ -130,7 +133,7 @@ export default function CreateBranch() {
               <button type="submit" disabled={loading} style={{ padding: '13px 36px', borderRadius: 14, border: 'none', background: loading ? '#64748b' : 'linear-gradient(135deg, #4f46e5, #7c3aed)', color: '#fff', fontWeight: 800, fontSize: 15, cursor: loading ? 'not-allowed' : 'pointer', boxShadow: loading ? 'none' : '0 4px 16px rgba(79,70,229,0.4)' }}>
                 {loading ? 'Creating...' : 'Create Branch'}
               </button>
-              <button type="button" disabled={loading} onClick={() => setForm({ name: '', type: 'Branch', address: '', city: '', state: '', pincode: '', manager: '', phone: '', email: '', capacity: '' })} style={{ padding: '13px 28px', borderRadius: 14, border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)', background: 'transparent', color: isDark ? '#94a3b8' : '#64748b', fontWeight: 700, fontSize: 15, cursor: loading ? 'not-allowed' : 'pointer' }}>
+              <button type="button" disabled={loading} onClick={() => setForm({ name: '', type: 'Branch', address: '', city: '', state: '', pincode: '', manager: '', phone: '', email: '', password: '', capacity: '' })} style={{ padding: '13px 28px', borderRadius: 14, border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)', background: 'transparent', color: isDark ? '#94a3b8' : '#64748b', fontWeight: 700, fontSize: 15, cursor: loading ? 'not-allowed' : 'pointer' }}>
                 Reset
               </button>
             </div>

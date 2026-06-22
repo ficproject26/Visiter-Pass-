@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTheme } from '../../context/ThemeContext';
 import { useData } from '../../context/DataContext';
+import { useAuth } from '../../context/AuthContext';
 import { staggerContainer, fadeUpBounce } from '../../utils/animations';
 import { Users, Briefcase, UserCheck, CalendarOff, Plus, Download } from 'lucide-react';
 import EmployeesList from './EmployeesList';
@@ -11,13 +12,19 @@ import AddEmployeeModal from './AddEmployeeModal';
 export default function EmployeeManagementOverview({ onAddEmployeeClick }) {
   const { isDark } = useTheme();
   const { employees, refreshData } = useData();
+  const { user } = useAuth();
   const [showAddModal, setShowAddModal] = useState(false);
 
-  // --- COMPUTE LIVE STATS from real backend data ---
-  const totalEmployees = employees.length;
-  const activeHosts = employees.filter(e => e.status === 'active').length;
-  const numDepartments = new Set(employees.map(e => e.department).filter(Boolean)).size;
-  const onLeave = employees.filter(e => e.status === 'on_leave').length;
+  // Filter employees if user is a sub-admin
+  const branchEmployees = user?.role === 'subadmin' && user?.branch
+    ? employees.filter(e => (e.location || '').toLowerCase() === user.branch.toLowerCase())
+    : employees;
+
+  // --- COMPUTE LIVE STATS from filtered branch data ---
+  const totalEmployees = branchEmployees.length;
+  const activeHosts = branchEmployees.filter(e => e.status === 'active').length;
+  const numDepartments = new Set(branchEmployees.map(e => e.department).filter(Boolean)).size;
+  const onLeave = branchEmployees.filter(e => e.status === 'on_leave').length;
 
   const statsData = [
     {
