@@ -12,10 +12,12 @@ import { TrendingUp, Users, Building2, ShieldCheck, DollarSign, Clock, CheckCirc
 
 const COLORS = ['#4f46e5', '#0ea5e9', '#10b981', '#f59e0b', '#ec4899'];
 
-const MetricCard = ({ title, value, subtitle, icon: Icon, color, isDark }) => (
+const MetricCard = ({ title, value, subtitle, icon: Icon, color, isDark, onClick }) => (
   <motion.div
+    onClick={onClick}
     variants={fadeUpBounce}
     style={{
+      cursor: onClick ? "pointer" : "default",
       background: isDark ? "linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.8))" : "linear-gradient(135deg, #ffffff, #f8fafc)",
       backdropFilter: "blur(20px)",
       WebkitBackdropFilter: "blur(20px)",
@@ -61,7 +63,7 @@ const MetricCard = ({ title, value, subtitle, icon: Icon, color, isDark }) => (
   </motion.div>
 );
 
-export default function SuperAdminDashboardOverview() {
+export default function SuperAdminDashboardOverview({ setActiveTab }) {
   const { isDark } = useTheme();
   const { visitors, employees, branches = [] } = useData();
 
@@ -116,15 +118,15 @@ export default function SuperAdminDashboardOverview() {
     >
       {/* Top Metrics Grid */}
       <div className="metrics-grid">
-        <MetricCard title="Total Visitors" value={totalVisitors} subtitle="Live" icon={Users} color="#4f46e5" isDark={isDark} />
-        <MetricCard title="Active Passes" value={activePasses} subtitle="Live" icon={CheckCircle} color="#10b981" isDark={isDark} />
-        <MetricCard title="Total Branches" value={totalBranches} subtitle="Active" icon={Building2} color="#0ea5e9" isDark={isDark} />
-        <MetricCard title="Monthly MRR" value="$0" subtitle="No Config" icon={DollarSign} color="#f59e0b" isDark={isDark} />
+        <MetricCard onClick={() => setActiveTab?.("visitor_logbook")} title="Total Visitors" value={totalVisitors} subtitle="Live" icon={Users} color="#4f46e5" isDark={isDark} />
+        <MetricCard onClick={() => setActiveTab?.("active_visitors")} title="Active Passes" value={activePasses} subtitle="Live" icon={CheckCircle} color="#10b981" isDark={isDark} />
+        <MetricCard onClick={() => setActiveTab?.("all_branches")} title="Total Branches" value={totalBranches} subtitle="Active" icon={Building2} color="#0ea5e9" isDark={isDark} />
+        <MetricCard onClick={() => setActiveTab?.("reports_analytics")} title="Monthly MRR" value="₹0" subtitle="No Config" icon={DollarSign} color="#f59e0b" isDark={isDark} />
         
-        <MetricCard title="Today's Traffic" value={todayVisitors} subtitle="Today" icon={Clock} color="#8b5cf6" isDark={isDark} />
-        <MetricCard title="Expired Passes" value={expiredPasses} subtitle="Live" icon={AlertTriangle} color="#ef4444" isDark={isDark} />
-        <MetricCard title="Total Employees" value={totalEmployees} subtitle="Internal" icon={Users} color="#14b8a6" isDark={isDark} />
-        <MetricCard title="Admins / Subs" value={totalAdmins} subtitle="Managers" icon={ShieldCheck} color="#f43f5e" isDark={isDark} />
+        <MetricCard onClick={() => setActiveTab?.("visitor_logbook")} title="Today's Traffic" value={todayVisitors} subtitle="Today" icon={Clock} color="#8b5cf6" isDark={isDark} />
+        <MetricCard onClick={() => setActiveTab?.("expired_passes")} title="Expired Passes" value={expiredPasses} subtitle="Live" icon={AlertTriangle} color="#ef4444" isDark={isDark} />
+        <MetricCard onClick={() => setActiveTab?.("employees")} title="Total Employees" value={totalEmployees} subtitle="Internal" icon={Users} color="#14b8a6" isDark={isDark} />
+        <MetricCard onClick={() => setActiveTab?.("employees")} title="Admins / Subs" value={totalAdmins} subtitle="Managers" icon={ShieldCheck} color="#f43f5e" isDark={isDark} />
       </div>
 
       {/* Charts Row */}

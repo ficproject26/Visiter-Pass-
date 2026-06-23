@@ -32,14 +32,14 @@ export default function BranchManagementOverview({ setActiveTab }) {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   })();
 
-  const activePasses = visitors.filter(v => v.status === 'CHECKED_IN').length;
+  const activePasses = visitors.filter(v => v.status === 'checked-in').length;
   const todaysVisitors = visitors.filter(v => v.visitDate === todayStr || (v.createdAt && v.createdAt.startsWith(todayStr))).length;
 
   const statsData = [
-    { title: "Total Branches", value: totalBranches, trend: "+2", isPositive: true, icon: Building2, color: "#3b82f6" },
-    { title: "Active Regions", value: activeRegions, trend: "+1", isPositive: true, icon: Activity, color: "#8b5cf6" },
-    { title: "Daily Footfall (Today)", value: todaysVisitors, trend: "+4%", isPositive: true, icon: Users, color: "#10b981" },
-    { title: "Peak Utilization (Active)", value: `${activePasses} visitors`, trend: "+1.2%", isPositive: true, icon: TrendingUp, color: "#f59e0b" },
+    { title: "Total Branches", value: totalBranches, trend: "+2", isPositive: true, icon: Building2, color: "#3b82f6", action: "all_branches" },
+    { title: "Active Regions", value: activeRegions, trend: "+1", isPositive: true, icon: Activity, color: "#8b5cf6", action: "branch_analytics" },
+    { title: "Daily Footfall (Today)", value: todaysVisitors, trend: "+4%", isPositive: true, icon: Users, color: "#10b981", action: "visitor_logbook" },
+    { title: "Peak Utilization (Active)", value: `${activePasses} visitors`, trend: "+1.2%", isPositive: true, icon: TrendingUp, color: "#f59e0b", action: "active_visitors" },
   ];
 
   const glass = {
@@ -70,7 +70,13 @@ export default function BranchManagementOverview({ setActiveTab }) {
       {/* 2. STATISTICS OVERVIEW */}
       <div className="overview-stats-grid">
         {statsData.map((stat, idx) => (
-          <motion.div key={idx} variants={fadeUpBounce} style={{ ...glass, padding: 20 }}>
+          <motion.div 
+            key={idx} 
+            variants={fadeUpBounce} 
+            onClick={() => stat.action && setActiveTab && setActiveTab(stat.action)}
+            style={{ ...glass, padding: 20, cursor: stat.action ? 'pointer' : 'default', transition: 'transform 0.2s' }}
+            whileHover={stat.action ? { scale: 1.02 } : {}}
+          >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
               <div style={{ width: 44, height: 44, borderRadius: 12, background: `${stat.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: stat.color }}>
                 <stat.icon size={22} />

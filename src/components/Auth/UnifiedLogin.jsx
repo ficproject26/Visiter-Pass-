@@ -105,6 +105,7 @@ export default function UnifiedLogin() {
               <input
                 type="checkbox"
                 id="remember"
+                required
               />
               <label htmlFor="remember">
                 I agree to the <a href="#" className="text-blue-600 hover:underline">Terms of Service</a> & <a href="#" className="text-blue-600 hover:underline">Privacy Policy</a>

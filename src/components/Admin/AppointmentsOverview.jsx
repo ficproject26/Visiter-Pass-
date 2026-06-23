@@ -20,9 +20,9 @@ export default function AppointmentsOverview() {
   })();
 
   const totalMeetings = visitors.length;
-  const pendingApprovals = visitors.filter(v => v.approvalStatus === 'PENDING').length;
+  const pendingApprovals = visitors.filter(v => (v.approvalStatus || '').toUpperCase() === 'PENDING').length;
   const upcomingToday = visitors.filter(v => (v.visitDate === todayStr || (v.createdAt && v.createdAt.startsWith(todayStr))) && v.status !== 'CHECKED_IN' && v.status !== 'CHECKED_OUT').length;
-  const canceled = visitors.filter(v => v.approvalStatus === 'REJECTED').length;
+  const canceled = visitors.filter(v => (v.approvalStatus || '').toUpperCase() === 'REJECTED').length;
 
   const statsData = [
     { title: "Total Meetings", value: totalMeetings, trend: "+12%", isPositive: true, icon: CalendarDays, color: "#3b82f6" },

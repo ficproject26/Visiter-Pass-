@@ -18,13 +18,14 @@ export default function ApprovalQueue() {
   const { visitors, refreshData } = useData();
   const [localProcessed, setLocalProcessed] = useState([]); // Temporary history for visual feedback
 
-  // Filter live pending visitors (case-insensitive)
+  // Filter live pending visitors (case-insensitive) and remove those already processed locally
   const queue = useMemo(() => {
     return visitors.filter(v => {
       const s = (v.approvalStatus || '').toUpperCase();
-      return s === 'PENDING';
+      const isProcessedLocally = localProcessed.some(p => p.id === v.id);
+      return s === 'PENDING' && !isProcessedLocally;
     });
-  }, [visitors]);
+  }, [visitors, localProcessed]);
 
   // Real counts from DB data — survive page refresh
   const approvedCount = useMemo(() => 
@@ -219,29 +220,67 @@ export default function ApprovalQueue() {
           </div>
           <div style={{ width: '100%', overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <thead>
+                <tr>
+                  <th style={{ padding: '16px 24px', fontSize: 12, fontWeight: 700, color: isDark ? '#64748b' : '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)' }}>Visitor Details</th>
+                  <th style={{ padding: '16px 24px', fontSize: 12, fontWeight: 700, color: isDark ? '#64748b' : '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)' }}>Host & Dept</th>
+                  <th style={{ padding: '16px 24px', fontSize: 12, fontWeight: 700, color: isDark ? '#64748b' : '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)' }}>Purpose / ID</th>
+                  <th style={{ padding: '16px 24px', fontSize: 12, fontWeight: 700, color: isDark ? '#64748b' : '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)', textAlign: 'right' }}>Status & Time</th>
+                </tr>
+              </thead>
               <tbody>
-                {localProcessed.map((p, i) => (
+                {localProcessed.map((p, i) => {
+                  const riskKey = p.riskScore || 'LOW_RISK';
+                  const rc = riskConfig[riskKey] || riskConfig['LOW_RISK'];
+                  return (
                   <motion.tr key={`${p.id}-${i}`} initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
                     style={{ borderBottom: i !== localProcessed.length - 1 ? (isDark ? '1px solid rgba(255,255,255,0.03)' : '1px solid rgba(0,0,0,0.03)') : 'none', opacity: 0.8 }}>
-                    <td style={{ padding: '16px 24px', width: 60 }}>
-                      <div style={{ width: 36, height: 36, borderRadius: 10, background: p.action === 'approved' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: p.action === 'approved' ? '#10b981' : '#ef4444' }}>
-                        {p.action === 'approved' ? <CheckCircle2 size={18} /> : <XCircle size={18} />}
+                    
+                    {/* Visitor Info */}
+                    <td style={{ padding: '16px 24px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                        <div style={{ width: 40, height: 40, borderRadius: 12, background: `linear-gradient(135deg, ${rc.color}30, ${rc.color}60)`, color: rc.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800, flexShrink: 0 }}>
+                          {p.fullName ? p.fullName.charAt(0).toUpperCase() : '?'}
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 14, fontWeight: 700, color: isDark ? '#f8fafc' : '#0f172a' }}>{p.fullName || 'Unknown Visitor'}</div>
+                          <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#64748b' }}>{p.company || 'Personal'}</div>
+                        </div>
                       </div>
                     </td>
+
+                    {/* Host & Dept */}
                     <td style={{ padding: '16px 24px' }}>
-                      <div style={{ fontSize: 14, fontWeight: 700, color: isDark ? '#f8fafc' : '#0f172a' }}>{p.fullName || p.visitorName}</div>
-                      <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#64748b' }}>{p.company || 'Personal'}</div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: isDark ? '#e2e8f0' : '#334155' }}>{p.personToMeet || p.host || 'Unknown Host'}</div>
+                      <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#64748b' }}>{p.department || p.dept || 'N/A'}</div>
                     </td>
+
+                    {/* Purpose & ID */}
                     <td style={{ padding: '16px 24px' }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: p.action === 'approved' ? '#10b981' : '#ef4444' }}>
-                        {p.action === 'approved' ? 'Approved' : 'Rejected'}
+                      <div style={{ fontSize: 13, color: isDark ? '#e2e8f0' : '#334155' }}>{p.purpose || 'Meeting'}</div>
+                      <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#64748b', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <ShieldAlert size={12} /> {p.idType || 'N/A'}
                       </div>
                     </td>
-                    <td style={{ padding: '16px 24px', textAlign: 'right', fontSize: 12, color: isDark ? '#64748b' : '#94a3b8' }}>
-                      {p.processedAt}
+
+                    {/* Status & Time */}
+                    <td style={{ padding: '16px 24px', textAlign: 'right' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end' }}>
+                        <span style={{ 
+                          background: p.action === 'approved' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', 
+                          color: p.action === 'approved' ? '#10b981' : '#ef4444', 
+                          padding: '4px 10px', borderRadius: 12, fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 
+                        }}>
+                          {p.action === 'approved' ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
+                          {p.action === 'approved' ? 'Approved' : 'Rejected'}
+                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: isDark ? '#64748b' : '#94a3b8', fontSize: 12, fontWeight: 600 }}>
+                          <Clock size={12} /> {p.processedAt}
+                        </div>
+                      </div>
                     </td>
                   </motion.tr>
-                ))}
+                )})}
               </tbody>
             </table>
           </div>

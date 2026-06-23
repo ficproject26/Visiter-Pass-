@@ -42,7 +42,7 @@ const statusConfig = {
   pending: { color: '#f59e0b', icon: AlertCircle },
 };
 
-export default function CalendarView() {
+export default function CalendarView({ setActiveTab }) {
   const { isDark } = useTheme();
   const today = new Date();
   const [viewYear, setViewYear] = useState(today.getFullYear());
@@ -91,6 +91,15 @@ export default function CalendarView() {
 
       {/* Header */}
       <div>
+        {setActiveTab && (
+          <button 
+            onClick={() => setActiveTab("visitor_management")} 
+            className="btn btn-secondary" 
+            style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", marginBottom: "16px", borderRadius: 8, border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid #e2e8f0", background: "transparent", color: isDark ? "#cbd5e1" : "#475569", cursor: "pointer", fontWeight: 600 }}
+          >
+            <span style={{ fontSize: 18 }}>←</span> Back to Dashboard
+          </button>
+        )}
         <h2 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: isDark ? '#f8fafc' : '#0f172a' }}>Calendar View</h2>
         <p style={{ margin: '4px 0 0', fontSize: 14, color: isDark ? '#94a3b8' : '#64748b' }}>Visualize all scheduled visits and meetings in one place</p>
       </div>

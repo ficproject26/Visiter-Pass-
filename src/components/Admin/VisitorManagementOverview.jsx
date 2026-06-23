@@ -89,9 +89,9 @@ export default function VisitorManagementOverview({ visitors = [], setActiveTab,
 
   const totalVisitors = visitors.length;
   const todaysVisitors = visitors.filter(v => v.visitDate === todayStr || (v.createdAt && v.createdAt.startsWith(todayStr))).length;
-  const activePasses = visitors.filter(v => v.status === 'CHECKED_IN').length;
-  const pendingApprovals = visitors.filter(v => v.approvalStatus === 'PENDING').length;
-  const expiredPasses = visitors.filter(v => v.status === 'CHECKED_OUT').length;
+  const activePasses = visitors.filter(v => v.status === 'checked-in').length;
+  const pendingApprovals = visitors.filter(v => v.approvalStatus === 'pending').length;
+  const expiredPasses = visitors.filter(v => v.status === 'checked-out').length;
 
   const statsData = [
     { title: "Total Visitors", value: totalVisitors, trend: "+12.5%", isPositive: true, icon: Users, color: "#3b82f6" },
@@ -112,7 +112,7 @@ export default function VisitorManagementOverview({ visitors = [], setActiveTab,
     host: v.personToMeet,
     checkIn: v.checkInTime || '--',
     checkOut: v.checkOutTime || '--',
-    status: v.status === 'CHECKED_IN' ? 'Active' : v.status === 'CHECKED_OUT' ? 'Expired' : v.approvalStatus === 'APPROVED' ? 'Approved' : 'Pending'
+    status: v.status === 'checked-in' ? 'Active' : v.status === 'checked-out' ? 'Expired' : (v.approvalStatus || '').toLowerCase() === 'approved' ? 'Approved' : (v.approvalStatus || '').toLowerCase() === 'rejected' ? 'Rejected' : 'Pending'
   }));
 
   const categoriesCount = visitors.reduce((acc, v) => {
@@ -129,7 +129,7 @@ export default function VisitorManagementOverview({ visitors = [], setActiveTab,
     trend: '+0%'
   })).sort((a, b) => b.count - a.count).slice(0, 5);
 
-  const approvals = visitors.filter(v => v.approvalStatus === 'PENDING').slice(0, 5).map(v => ({
+  const approvals = visitors.filter(v => v.approvalStatus === 'pending').slice(0, 5).map(v => ({
     name: v.fullName,
     time: new Date(v.createdAt).toLocaleDateString(),
     host: v.personToMeet,
@@ -222,7 +222,9 @@ export default function VisitorManagementOverview({ visitors = [], setActiveTab,
       <motion.div variants={fadeUpBounce} style={{ ...glass, padding: 24, overflowX: 'auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: isDark ? '#f8fafc' : '#0f172a' }}>Recent Visitor Passes</h3>
-          <button style={{ background: 'transparent', border: 'none', color: '#4f46e5', fontWeight: 600, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+          <button 
+            onClick={() => setActiveTab && setActiveTab("visitor_passes")}
+            style={{ background: 'transparent', border: 'none', color: '#4f46e5', fontWeight: 600, fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
             View All <ChevronRight size={16} />
           </button>
         </div>
@@ -267,7 +269,7 @@ export default function VisitorManagementOverview({ visitors = [], setActiveTab,
 
       {/* 4.5 VISITOR BOOKINGS */}
       <motion.div variants={fadeUpBounce} style={{ ...glass, padding: 24 }}>
-        <VisitorBookings />
+        <VisitorBookings onNewBooking={onCreatePassClick} />
       </motion.div>
 
       {/* 3-COLUMN GRID: Categories, QR Scan, Blacklist */}

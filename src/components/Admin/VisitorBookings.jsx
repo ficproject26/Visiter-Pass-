@@ -5,6 +5,7 @@ import { staggerContainer, fadeUpBounce } from '../../utils/animations';
 import { useTheme } from '../../context/ThemeContext';
 import { useData } from '../../context/DataContext';
 import { Plus, Search, Calendar, Clock, MapPin, User, Tag, CheckCircle2, AlertCircle, XCircle, Trash2 } from 'lucide-react';
+import { API_BASE_URL } from '../../config/api';
 
 const statusConfig = {
   confirmed: { color: '#10b981', bg: 'rgba(16,185,129,0.1)', text: 'Confirmed', icon: CheckCircle2 },
@@ -16,11 +17,27 @@ const categoryColors = {
   Vendor: '#f59e0b', Interviewee: '#10b981', Guest: '#3b82f6', VIP: '#8b5cf6',
 };
 
-export default function VisitorBookings() {
+export default function VisitorBookings({ onNewBooking }) {
   const { isDark } = useTheme();
   const { visitors, refreshData } = useData();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+
+  const handleCancel = async (id) => {
+    if (!window.confirm("Are you sure you want to cancel this booking?")) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/visitors/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ approvalStatus: 'REJECTED' })
+      });
+      if (res.ok) {
+        await refreshData();
+      }
+    } catch (err) {
+      console.error("Failed to cancel booking:", err);
+    }
+  };
 
   const filtered = visitors.filter(b => {
     const vName = (b.fullName || b.visitorName || '').toLowerCase();
@@ -56,7 +73,7 @@ export default function VisitorBookings() {
           <h2 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: isDark ? '#f8fafc' : '#0f172a' }}>Visitor Bookings</h2>
           <p style={{ margin: '4px 0 0', fontSize: 14, color: isDark ? '#94a3b8' : '#64748b' }}>View and manage all pre-scheduled visitor bookings</p>
         </div>
-        <button style={{ padding: '10px 20px', borderRadius: 12, border: 'none', background: '#4f46e5', color: '#fff', fontWeight: 700, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', boxShadow: '0 4px 14px rgba(79,70,229,0.35)' }}>
+        <button onClick={onNewBooking} style={{ padding: '10px 20px', borderRadius: 12, border: 'none', background: '#4f46e5', color: '#fff', fontWeight: 700, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', boxShadow: '0 4px 14px rgba(79,70,229,0.35)' }}>
           <Plus size={18} /> New Booking
         </button>
       </div>
@@ -111,8 +128,19 @@ export default function VisitorBookings() {
                     >
                       <td style={{ padding: '16px 20px', fontSize: 12, fontWeight: 700, color: '#4f46e5' }}>{b.visitorId || b.id || 'VB-000'}</td>
                       <td style={{ padding: '16px 20px' }}>
-                        <div style={{ fontWeight: 700, fontSize: 14, color: isDark ? '#f8fafc' : '#0f172a' }}>{b.fullName || b.visitorName}</div>
-                        <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#64748b', marginTop: 2 }}>{b.phoneNumber || b.visitorPhone || '--'}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          {b.photo ? (
+                            <img src={b.photo} alt={b.fullName || b.visitorName} style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', border: '1px solid #e2e8f0' }} />
+                          ) : (
+                            <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg, #ccfbf1, #c7d2fe)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4f46e5', fontWeight: 700, fontSize: 13, flexShrink: 0 }}>
+                              {(b.fullName || b.visitorName || 'U').charAt(0)}
+                            </div>
+                          )}
+                          <div>
+                            <div style={{ fontWeight: 700, fontSize: 14, color: isDark ? '#f8fafc' : '#0f172a' }}>{b.fullName || b.visitorName}</div>
+                            <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#64748b', marginTop: 2 }}>{b.phoneNumber || b.visitorPhone || '--'}</div>
+                          </div>
+                        </div>
                       </td>
                       <td style={{ padding: '16px 20px' }}>
                         <div style={{ fontWeight: 600, fontSize: 13, color: isDark ? '#e2e8f0' : '#334155' }}>{b.personToMeet || b.host || 'Unknown'}</div>
@@ -141,7 +169,9 @@ export default function VisitorBookings() {
                         </span>
                       </td>
                       <td style={{ padding: '16px 20px' }}>
-                        <button style={{ padding: '5px 10px', borderRadius: 8, border: 'none', background: 'rgba(239,68,68,0.1)', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600 }}>
+                        <button 
+                          onClick={() => handleCancel(b.id || b.visitorId)}
+                          style={{ padding: '5px 10px', borderRadius: 8, border: 'none', background: 'rgba(239,68,68,0.1)', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600 }}>
                           <Trash2 size={13} /> Cancel
                         </button>
                       </td>

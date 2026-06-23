@@ -46,13 +46,13 @@ export function exportToCSV(visitors) {
 
   const rows = visitors.map(v => [
     v.id,
-    `"${v.fullName.replace(/"/g, '""')}"`,
+    `"${(v.fullName||'').replace(/"/g, '""')}"`,
     v.phone,
     v.email || "",
     v.idType,
     v.idNumber,
     v.purpose,
-    `"${v.personToMeet.replace(/"/g, '""')}"`,
+    `"${(v.personToMeet||'').replace(/"/g, '""')}"`,
     v.department,
     v.branch,
     v.visitDate,
@@ -64,15 +64,16 @@ export function exportToCSV(visitors) {
     v.approvalStatus
   ]);
 
-  const csvContent = "data:text/csv;charset=utf-8," 
-    + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+  const csvContent = [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
   
-  const encodedUri = encodeURI(csvContent);
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
-  link.setAttribute("href", encodedUri);
+  link.setAttribute("href", url);
   link.setAttribute("download", `visitor_logs_${new Date().toISOString().slice(0,10)}.csv`);
   document.body.appendChild(link); // Required for FF
   
   link.click();
   document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }

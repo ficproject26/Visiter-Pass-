@@ -46,7 +46,7 @@ import SubAdminAppointments from "./SubAdminAppointments";
 import "../../styles/dashboard.css";
 import { useRouter } from "next/navigation";
 
-export default function AdminDashboard({ visitors = [], onNavigate: externalOnNavigate, onUpdate, onReset }) {
+export default function AdminDashboard({ visitors: propVisitors, onNavigate: externalOnNavigate, onUpdate: propOnUpdate, onReset }) {
   const router = useRouter();
   const onNavigate = externalOnNavigate || ((target) => {
     if (target === "landing") router.push("/");
@@ -65,7 +65,22 @@ export default function AdminDashboard({ visitors = [], onNavigate: externalOnNa
   const [latestEmployee, setLatestEmployee] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { isDark, toggle: toggleTheme } = useTheme();
-  const { refreshData } = useData();
+  const { visitors: contextVisitors, refreshData } = useData();
+  
+  const visitors = propVisitors || contextVisitors || [];
+
+  const onUpdate = propOnUpdate || (async (id, updates) => {
+    try {
+      await fetch(`/api/visitors/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates)
+      });
+      refreshData();
+    } catch (err) {
+      console.error("Failed to update visitor:", err);
+    }
+  });
 
   // Computations for dashboard statistics
   const total = visitors.length;
@@ -198,6 +213,11 @@ export default function AdminDashboard({ visitors = [], onNavigate: externalOnNa
                 <span className="dash-search-icon">🔍</span>
                 <input
                   placeholder="Search..."
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    if (activeTab === "dashboard") setActiveTab("visitor_logbook");
+                  }}
                   style={{
                     borderRadius: 12,
                     border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid #e2e8f0",
@@ -212,6 +232,7 @@ export default function AdminDashboard({ visitors = [], onNavigate: externalOnNa
               {/* Notifications Bell */}
               <button
                 className="dash-icon-btn"
+                onClick={() => setActiveTab("notifications")}
                 style={{
                   background: isDark ? "rgba(255,255,255,0.05)" : "#fff",
                   border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid #e2e8f0",
@@ -242,7 +263,8 @@ export default function AdminDashboard({ visitors = [], onNavigate: externalOnNa
               {/* User Profile */}
               <div
                 className="dash-profile"
-                style={{ borderLeft: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid #e2e8f0" }}
+                onClick={() => setActiveTab("settings")}
+                style={{ borderLeft: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid #e2e8f0", cursor: "pointer" }}
               >
                 <div style={{
                   width: 40, height: 40, borderRadius: 12,
@@ -315,11 +337,22 @@ export default function AdminDashboard({ visitors = [], onNavigate: externalOnNa
           {activeTab === "dashboard" && (
             user?.role === 'subadmin'
               ? <BranchSubAdminDashboardOverview />
-              : <SuperAdminDashboardOverview visitors={visitors} />
+              : <SuperAdminDashboardOverview visitors={visitors} setActiveTab={setActiveTab} />
           )}
 
           {activeTab === "visitor_logbook" && (
             <motion.div variants={fadeUpBounce} initial="hidden" animate="visible" style={{ transitionDelay: "100ms" }}>
+              {/* Back to Dashboard Button */}
+              <div style={{ marginBottom: 16 }}>
+                <button 
+                  onClick={() => setActiveTab("visitor_management")} 
+                  className="btn btn-secondary" 
+                  style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 8, border: isDark ? "1px solid rgba(255,255,255,0.1)" : "1px solid #e2e8f0", background: "transparent", color: isDark ? "#cbd5e1" : "#475569", cursor: "pointer", fontWeight: 600, width: "fit-content" }}
+                >
+                  <span style={{ fontSize: 18 }}>←</span> Back to Dashboard
+                </button>
+              </div>
+
               {/* Filter bar */}
               <div style={{
                 background: isDark ? "#111827" : "#FFFFFF",
@@ -460,9 +493,9 @@ export default function AdminDashboard({ visitors = [], onNavigate: externalOnNa
           {activeTab === "blacklisted_visitors"  && <BlacklistedVisitors />}
           {activeTab === "visitor_passes"        && <VisitorPassesList visitors={visitors} />}
           {activeTab === "meeting_requests"      && <MeetingRequests />}
-          {activeTab === "visitor_bookings"      && <VisitorBookings />}
+          {activeTab === "visitor_bookings"      && <VisitorBookings onNewBooking={() => setShowCreatePassModal(true)} />}
           {activeTab === "approval_queue"        && <ApprovalQueue />}
-          {activeTab === "calendar_view"         && <CalendarView />}
+          {activeTab === "calendar_view"         && <CalendarView setActiveTab={setActiveTab} />}
 
           {activeTab === "employees" && (
             <motion.div variants={fadeUpBounce} initial="hidden" animate="visible">
