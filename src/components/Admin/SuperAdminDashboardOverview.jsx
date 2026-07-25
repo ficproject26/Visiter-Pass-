@@ -78,11 +78,7 @@ export default function SuperAdminDashboardOverview({ setActiveTab }) {
   const activePasses = visitors.filter(v => v.status === "CHECKED_IN").length;
   const expiredPasses = visitors.filter(v => v.status === "CHECKED_OUT").length;
 
-  const totalBranches = new Set([
-    ...branches.map(b => b.name),
-    ...employees.map(e => e.location),
-    ...visitors.map(v => v.branch)
-  ].filter(Boolean)).size;
+  const totalBranches = Array.isArray(branches) ? branches.length : 0;
 
   const totalEmployees = employees.length;
   const totalAdmins = employees.filter(e => e.role && e.role.toLowerCase().includes('manager')).length || 0;
@@ -107,6 +103,21 @@ export default function SuperAdminDashboardOverview({ setActiveTab }) {
       data.push({ name: d.toLocaleDateString('en-US', { weekday: 'short' }), visitors: count });
     }
     return data;
+  }, [visitors]);
+
+  // Interview Domain Breakdown Computation
+  const interviewDomainData = useMemo(() => {
+    const interviewVisitors = visitors.filter(v => v.purpose === "Interview" || v.interviewDomain || v.companyName);
+    const domainCounts = {};
+    interviewVisitors.forEach(v => {
+      const domain = v.interviewDomain || v.companyName || "Unspecified";
+      domainCounts[domain] = (domainCounts[domain] || 0) + 1;
+    });
+    return Object.keys(domainCounts).map(domain => ({
+      domain,
+      candidates: domainCounts[domain],
+      roles: [...new Set(interviewVisitors.filter(v => (v.interviewDomain || v.companyName) === domain).map(v => v.interviewRole || v.positionApplied).filter(Boolean))]
+    }));
   }, [visitors]);
 
   return (
@@ -203,6 +214,59 @@ export default function SuperAdminDashboardOverview({ setActiveTab }) {
         </motion.div>
 
       </div>
+
+      {/* Interview Domain Breakdown Section */}
+      <motion.div variants={fadeUpBounce} style={{
+        background: isDark ? "rgba(15, 23, 42, 0.6)" : "rgba(255, 255, 255, 0.8)",
+        backdropFilter: "blur(16px)",
+        border: isDark ? "1px solid rgba(255,255,255,0.05)" : "1px solid rgba(0,0,0,0.05)",
+        borderRadius: 20,
+        padding: "24px",
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          <div>
+            <h3 style={{ margin: 0, color: isDark ? "#f8fafc" : "#0f172a", fontSize: 18, fontWeight: 800 }}>
+              Interview Candidate Breakdown by Domain
+            </h3>
+            <p style={{ margin: "4px 0 0", fontSize: 13, color: isDark ? "#94a3b8" : "#64748b" }}>
+              Live metrics tracking candidates across IT, Banking, BPO, and other domains
+            </p>
+          </div>
+          <span style={{ fontSize: 12, fontWeight: 700, padding: "4px 12px", borderRadius: 20, background: "rgba(79,70,229,0.15)", color: "#6366f1" }}>
+            {visitors.filter(v => v.purpose === "Interview" || v.interviewDomain || v.companyName).length} Candidates
+          </span>
+        </div>
+
+        {interviewDomainData.length === 0 ? (
+          <div style={{ padding: "32px", textAlign: "center", color: isDark ? "#94a3b8" : "#64748b", fontSize: 14 }}>
+            No interview candidates registered yet. When candidates select Purpose = "Interview", their domain (IT, Banking, BPO) and role will appear here automatically.
+          </div>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 16 }}>
+            {interviewDomainData.map((item) => (
+              <div key={item.domain} style={{
+                padding: 18,
+                borderRadius: 16,
+                background: isDark ? "rgba(30,41,59,0.6)" : "#f8fafc",
+                border: isDark ? "1px solid rgba(255,255,255,0.06)" : "1px solid #e2e8f0",
+                display: "flex",
+                flexDirection: "column",
+                gap: 8
+              }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: 14, fontWeight: 800, color: isDark ? "#f8fafc" : "#0f172a" }}>{item.domain}</span>
+                  <span style={{ fontSize: 16, fontWeight: 900, color: "#4f46e5", background: "rgba(79,70,229,0.1)", padding: "2px 10px", borderRadius: 12 }}>
+                    {item.candidates}
+                  </span>
+                </div>
+                <div style={{ fontSize: 12, color: isDark ? "#94a3b8" : "#64748b" }}>
+                  {item.roles.length > 0 ? `Roles: ${item.roles.join(", ")}` : "Position specified"}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </motion.div>
     </motion.div>
   );
 }

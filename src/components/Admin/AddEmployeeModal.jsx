@@ -2,12 +2,15 @@
 import React, { useState } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import { motion } from "framer-motion";
+import { useData } from "../../context/DataContext";
 import { DEPARTMENTS, BRANCHES, DEPARTMENT_ROLES } from "../../constants/visitorConstants";
 import { Loader2, UserPlus, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 import { API_BASE_URL } from "../../config/api";
 
 export default function AddEmployeeModal({ onClose, onAdd }) {
   const { isDark } = useTheme();
+  const { branches = [] } = useData();
+  const availableBranches = Array.isArray(branches) && branches.length > 0 ? branches.map(b => b.name) : BRANCHES;
   const initialDept = DEPARTMENTS[0] || "Engineering";
 
   const [formData, setFormData] = useState({
@@ -16,7 +19,7 @@ export default function AddEmployeeModal({ onClose, onAdd }) {
     password: "",
     department: initialDept,
     role: DEPARTMENT_ROLES[initialDept]?.[0] || "",
-    location: BRANCHES[0] || "Bangalore HQ",
+    location: availableBranches[0] || "Bangalore HQ",
     status: "active"
   });
   const [loading, setLoading] = useState(false);
@@ -260,7 +263,7 @@ export default function AddEmployeeModal({ onClose, onAdd }) {
               <div>
                 <label style={labelStyle}>Branch / Location *</label>
                 <select name="location" value={formData.location} onChange={handleChange} style={inputStyle}>
-                  {BRANCHES.map(b => <option key={b} value={b}>{b}</option>)}
+                  {availableBranches.map(b => <option key={b} value={b}>{b}</option>)}
                 </select>
               </div>
               <div>

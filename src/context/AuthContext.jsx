@@ -9,13 +9,39 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check local storage for mock session
+    // Check local storage for session
     const session = localStorage.getItem('vos_session');
     if (session) {
-      setUser(JSON.parse(session));
+      const parsedUser = JSON.parse(session);
+      setUser(parsedUser);
+      recordLoginSession(parsedUser);
     }
     setLoading(false);
   }, []);
+
+  const recordLoginSession = (userData) => {
+    try {
+      const existingLogs = JSON.parse(localStorage.getItem('vos_login_history') || '[]');
+      const userAgent = typeof window !== 'undefined' ? window.navigator.userAgent : '';
+      let browserName = 'Chrome';
+      if (userAgent.includes('Firefox')) browserName = 'Firefox';
+      else if (userAgent.includes('Edg')) browserName = 'Edge';
+      else if (userAgent.includes('Safari')) browserName = 'Safari';
+
+      const newLog = {
+        id: `SESS-${Date.now()}`,
+        user: userData.email,
+        name: userData.name || userData.email,
+        device: `${browserName} / Windows (127.0.0.1)`,
+        location: userData.branch && userData.branch !== 'all' ? `${userData.branch} Branch` : 'Admin Portal / HQ',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        status: 'Online'
+      };
+
+      const updatedLogs = [newLog, ...existingLogs.filter(l => l.user !== userData.email)].slice(0, 20);
+      localStorage.setItem('vos_login_history', JSON.stringify(updatedLogs));
+    } catch (e) {}
+  };
 
   const login = async (email, password) => {
     try {
@@ -35,9 +61,9 @@ export const AuthProvider = ({ children }) => {
       const userData = await response.json();
       setUser(userData);
       localStorage.setItem('vos_session', JSON.stringify(userData));
+      recordLoginSession(userData);
       return userData;
     } catch (err) {
-      // Intentionally not logging to console to avoid Next.js dev overlay
       throw err;
     }
   };

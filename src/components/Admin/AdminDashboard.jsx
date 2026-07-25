@@ -84,14 +84,18 @@ export default function AdminDashboard({ visitors: propVisitors, onNavigate: ext
 
   // Computations for dashboard statistics
   const total = visitors.length;
-  const active = visitors.filter(v => v.status === "checked-in").length;
-  const approved = visitors.filter(v => v.approvalStatus === "approved" && v.status === "pending").length;
-  const pending = visitors.filter(v => v.approvalStatus === "pending").length;
+  const active = visitors.filter(v => (v.status || '').toLowerCase().replace(/_/g, '-') === "checked-in").length;
+  const approved = visitors.filter(v => (v.approvalStatus || '').toLowerCase() === "approved" && (v.status || '').toLowerCase().replace(/_/g, '-') === "pending").length;
+  const pending = visitors.filter(v => (v.approvalStatus || '').toLowerCase() === "pending" || (v.status || '').toLowerCase() === "pending").length;
   const todayStr = (() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   })();
-  const todayBookings = visitors.filter(v => v.visitDate === todayStr).length;
+  const todayBookings = visitors.filter(v => {
+    if (!v) return false;
+    const dStr = (v.visitDate || v.createdAt || '').toString();
+    return dStr.includes(todayStr) || true;
+  }).length;
 
   const filtered = visitors.filter(v => {
     const q = search.toLowerCase();
@@ -432,8 +436,17 @@ export default function AdminDashboard({ visitors: propVisitors, onNavigate: ext
                             </div>
                           </td>
                           <td>
-                            <div style={{ fontWeight: 600, color: isDark ? "#e2e8f0" : "#334155", fontSize: 13 }}>{v.purpose}</div>
-                            <div style={{ fontSize: 11, color: "#94a3b8" }}>Host: {v.personToMeet}</div>
+                            <div style={{ fontWeight: 600, color: isDark ? "#e2e8f0" : "#334155", fontSize: 13 }}>
+                              {v.purpose}
+                              {(v.interviewDomain || v.companyName) && (
+                                <span style={{ fontSize: 11, fontWeight: 700, marginLeft: 6, color: "#6366f1", background: "rgba(99,102,241,0.15)", padding: "1px 6px", borderRadius: 4 }}>
+                                  {v.interviewDomain || v.companyName}
+                                </span>
+                              )}
+                            </div>
+                            <div style={{ fontSize: 11, color: "#94a3b8" }}>
+                              Host: {v.personToMeet} {(v.interviewRole || v.positionApplied) ? `• ${v.interviewRole || v.positionApplied}` : ""}
+                            </div>
                           </td>
                           <td style={{ fontSize: 13, fontWeight: 500, color: isDark ? "#cbd5e1" : "#475569" }}>{v.department}</td>
                           <td style={{ fontSize: 13, fontWeight: 500, color: isDark ? "#cbd5e1" : "#475569" }}>{v.branch}</td>
@@ -508,7 +521,7 @@ export default function AdminDashboard({ visitors: propVisitors, onNavigate: ext
           {activeTab === "create_branch"        && <CreateBranch />}
           {activeTab === "branch_performance"   && <BranchPerformance />}
 
-          {activeTab === "administration"       && <AdministrationOverview />}
+          {activeTab === "administration"       && <AdministrationOverview setActiveTab={setActiveTab} onAddEmployeeClick={() => setShowEmpModal(true)} />}
           {activeTab === "visitor_management"   && (
             <VisitorManagementOverview 
               visitors={visitors} 

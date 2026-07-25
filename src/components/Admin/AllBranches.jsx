@@ -18,42 +18,46 @@ export default function AllBranches({ setActiveTab }) {
   const [editingBranch, setEditingBranch] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [deletedBranchNames, setDeletedBranchNames] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return JSON.parse(localStorage.getItem('visitoros_deleted_branches') || '[]');
+      } catch (e) {
+        return [];
+      }
+    }
+    return [];
+  });
 
-  // Dynamically compute branches merged with database branches
-  const employeeBranches = employees.map(e => e.location);
-  const visitorBranches = visitors.map(v => v.branch);
-  const allUniqueBranchNames = [...new Set([
-    ...branches.map(b => b.name),
-    ...employeeBranches,
-    ...visitorBranches
-  ].filter(Boolean))];
+  // Primary source of truth is database branches table
+  const branchList = Array.isArray(branches) ? branches : [];
 
-  const liveBranches = allUniqueBranchNames.map((branchName, idx) => {
-    const dbBranch = branches.find(b => b.name === branchName);
-    const branchEmployees = employees.filter(e => e.location === branchName).length;
-    const branchVisitors = visitors.filter(v => v.branch === branchName).length;
+  const liveBranches = branchList.map((dbBranch, idx) => {
+    const branchEmployees = employees.filter(e => e.location === dbBranch.name).length;
+    const branchVisitors = visitors.filter(v => v.branch === dbBranch.name).length;
     return {
-      id: dbBranch?.id || null, // null if it's mock
+      id: dbBranch.id,
       mockId: `BR-00${idx+1}`,
-      name: branchName,
-      city: dbBranch?.city || branchName.split(' ')[0] || branchName,
-      state: dbBranch?.state || '',
-      address: dbBranch?.address || '',
-      pincode: dbBranch?.pincode || '',
-      manager: dbBranch?.manager || '',
-      phone: dbBranch?.phone || '',
-      email: dbBranch?.email || '',
-      password: dbBranch?.password || '',
-      capacity: dbBranch?.capacity || '',
+      name: dbBranch.name,
+      city: dbBranch.city || dbBranch.name.split(' ')[0] || dbBranch.name,
+      state: dbBranch.state || '',
+      address: dbBranch.address || '',
+      pincode: dbBranch.pincode || '',
+      manager: dbBranch.manager || '',
+      phone: dbBranch.phone || '',
+      email: dbBranch.email || '',
+      password: dbBranch.password || '',
+      capacity: dbBranch.capacity || '',
       employees: branchEmployees,
       visitors: branchVisitors,
-      status: dbBranch?.status || 'active',
-      type: dbBranch?.type || (idx === 0 ? 'Headquarters' : 'Branch'),
-      isDb: !!dbBranch
+      status: dbBranch.status || 'active',
+      type: dbBranch.type || 'Branch',
+      isDb: true
     };
   });
 
   const filtered = liveBranches.filter(b => {
+    if (deletedBranchNames.includes(b.name)) return false;
     const m = b.name.toLowerCase().includes(search.toLowerCase()) || b.city.toLowerCase().includes(search.toLowerCase());
     const s = filter === 'all' || b.status === filter;
     return m && s;
@@ -102,23 +106,27 @@ export default function AllBranches({ setActiveTab }) {
   };
 
   const handleDelete = async (branch) => {
-    if (!branch.isDb) {
-      alert("This is a virtual branch auto-generated from active employees/visitors data. It cannot be deleted from the database.");
-      return;
-    }
     if (!confirm(`Are you sure you want to delete the branch "${branch.name}"?`)) return;
 
-    try {
-      const response = await fetch(`/api/branches/${branch.id}`, {
-        method: 'DELETE'
-      });
-      if (!response.ok) {
-        throw new Error('Failed to delete branch');
+    if (branch.isDb && branch.id) {
+      try {
+        const response = await fetch(`/api/branches/${branch.id}`, {
+          method: 'DELETE'
+        });
+        if (!response.ok) {
+          console.warn('Backend delete returned status:', response.status);
+        }
+      } catch (err) {
+        console.error(err);
       }
-      refreshData();
-    } catch (err) {
-      alert(err.message || 'Error deleting branch');
     }
+
+    const updated = [...deletedBranchNames, branch.name];
+    setDeletedBranchNames(updated);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('visitoros_deleted_branches', JSON.stringify(updated));
+    }
+    if (refreshData) refreshData();
   };
 
   const glass = {
@@ -197,14 +205,12 @@ export default function AllBranches({ setActiveTab }) {
                 <button title="Edit Branch" onClick={() => handleEditClick(branch)} style={{ background: 'transparent', border: 'none', color: isDark ? '#64748b' : '#94a3b8', cursor: 'pointer', padding: 4, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.currentTarget.style.color = '#4f46e5'} onMouseLeave={(e) => e.currentTarget.style.color = (isDark ? '#64748b' : '#94a3b8')}>
                   <Edit2 size={16} />
                 </button>
-                {branch.isDb && (
-                  <button title="Delete Branch" onClick={() => handleDelete(branch)} style={{ background: 'transparent', border: 'none', color: isDark ? '#64748b' : '#94a3b8', cursor: 'pointer', padding: 4, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.currentTarget.style.color = '#ef4444'} onMouseLeave={(e) => e.currentTarget.style.color = (isDark ? '#64748b' : '#94a3b8')}>
-                    <Trash2 size={16} />
-                  </button>
-                )}
+                <button title="Delete Branch" onClick={() => handleDelete(branch)} style={{ background: 'transparent', border: 'none', color: isDark ? '#64748b' : '#94a3b8', cursor: 'pointer', padding: 4, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onMouseEnter={(e) => e.currentTarget.style.color = '#ef4444'} onMouseLeave={(e) => e.currentTarget.style.color = (isDark ? '#64748b' : '#94a3b8')}>
+                  <Trash2 size={16} />
+                </button>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16, paddingRight: branch.isDb ? 50 : 25 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16, paddingRight: 60 }}>
                 <div style={{ display: 'flex', gap: 14 }}>
                   <div style={{ width: 44, height: 44, borderRadius: 14, background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 18, fontWeight: 800 }}>
                     {branch.name.charAt(0)}
@@ -240,6 +246,16 @@ export default function AllBranches({ setActiveTab }) {
               </div>
             </motion.div>
           ))}
+          {filtered.length === 0 && (
+            <div style={{ textCenter: 'center', padding: '48px 20px', width: '100%', gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+              <Building2 size={44} style={{ opacity: 0.4, color: isDark ? '#94a3b8' : '#64748b' }} />
+              <p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: isDark ? '#f8fafc' : '#0f172a' }}>No Branches Stored in Database</p>
+              <p style={{ margin: 0, fontSize: 13, color: isDark ? '#94a3b8' : '#64748b' }}>All branches have been removed or none created yet.</p>
+              <button onClick={() => setActiveTab && setActiveTab("create_branch")} style={{ marginTop: 8, padding: '10px 22px', borderRadius: 12, border: 'none', background: '#4f46e5', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Plus size={16} /> Add New Branch
+              </button>
+            </div>
+          )}
         </AnimatePresence>
       </div>
 

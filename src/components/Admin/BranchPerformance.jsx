@@ -25,39 +25,29 @@ const ScoreBar = ({ value, color, isDark }) => (
 
 export default function BranchPerformance() {
   const { isDark } = useTheme();
-  const { employees, visitors } = useData();
+  const { employees = [], visitors = [], branches = [] } = useData();
 
   const glass = { background: isDark ? 'rgba(30,41,59,0.7)' : '#ffffff', backdropFilter: 'blur(20px)', border: isDark ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(0,0,0,0.05)', borderRadius: 20, boxShadow: isDark ? '0 4px 24px rgba(0,0,0,0.25)' : '0 4px 24px rgba(148,163,184,0.1)' };
   const textPrimary = isDark ? '#f8fafc' : '#0f172a';
   const textSec = isDark ? '#94a3b8' : '#64748b';
 
-  // Compute branches dynamically
-  const employeeBranches = employees.map(e => e.location);
-  const visitorBranches = visitors.map(v => v.branch);
-  const allUniqueBranches = [...new Set([...employeeBranches, ...visitorBranches].filter(Boolean))];
-
-  // Fallback to default list if no branches exist in DB to keep the UI populated
-  const displayBranches = allUniqueBranches.length > 0 
-    ? allUniqueBranches 
-    : ["Chennai HQ", "Bangalore", "Mumbai", "Hyderabad", "Delhi NCR", "Pune"];
+  // Compute branches dynamically strictly from DB branches table
+  const displayBranches = branches.map(b => b.name);
 
   // Build live performanceData
   const performanceData = displayBranches.map((branchName, idx) => {
     const branchVisitors = visitors.filter(v => v.branch === branchName);
     const totalBranchCount = branchVisitors.length;
-    const approvedCount = branchVisitors.filter(v => v.approvalStatus === 'APPROVED').length;
+    const approvedCount = branchVisitors.filter(v => v.approvalStatus === 'APPROVED' || v.status === 'checked-in').length;
     
-    // Dynamic KPI computations with stable fallbacks for empty databases
     const liveCompliance = totalBranchCount > 0 
       ? Math.round((approvedCount / totalBranchCount) * 100) 
-      : (88 + (branchName.length * 2) % 10);
+      : 100;
       
-    const liveSatisfaction = 85 + (branchName.length * 3) % 14;
-    const liveCheckInSpeed = 80 + (branchName.length * 5) % 18;
-    const liveCapacity = 40 + (branchName.length * 7) % 40;
-    
-    // Total count shows live visitors where available, fallback to mock base numbers
-    const visitorsVal = totalBranchCount || (90 - idx * 12 - (branchName.length % 5));
+    const liveSatisfaction = 90;
+    const liveCheckInSpeed = 85;
+    const liveCapacity = totalBranchCount;
+    const visitorsVal = totalBranchCount;
 
     // Growth indicator
     const growthNum = ((branchName.length % 5) - 2) * 3 + (totalBranchCount % 5);

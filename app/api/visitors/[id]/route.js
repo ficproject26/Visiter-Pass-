@@ -1,46 +1,28 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '../../../../lib/prisma';
+import { updateVisitor } from '../../../../lib/dbHandler';
 import { sendApprovalEmail } from '../../../../lib/services/emailService';
 
 export async function PATCH(req, { params }) {
   try {
     const { id } = await params;
-    const { approvalStatus, status, checkInTime, checkOutTime } = await req.json();
+    const body = await req.json();
 
     const updateData = {};
+    if (body.approvalStatus !== undefined) updateData.approvalStatus = String(body.approvalStatus).toUpperCase();
+    if (body.status !== undefined) updateData.status = String(body.status).toUpperCase();
+    if (body.checkInTime !== undefined) updateData.checkInTime = body.checkInTime;
+    if (body.checkOutTime !== undefined) updateData.checkOutTime = body.checkOutTime;
 
-    if (approvalStatus !== undefined) {
-      const validApproval = ['PENDING', 'APPROVED', 'REJECTED'];
-      const normalizedApproval = String(approvalStatus).toUpperCase();
-      if (validApproval.includes(normalizedApproval)) {
-        updateData.approvalStatus = normalizedApproval;
-      }
-    }
+    const visitor = await updateVisitor(id, updateData);
 
-    if (status !== undefined) {
-      const validStatus = ['PENDING', 'CHECKED_IN', 'CHECKED_OUT'];
-      const normalizedStatus = String(status).toUpperCase();
-      if (validStatus.includes(normalizedStatus)) {
-        updateData.status = normalizedStatus;
-      }
-    }
-
-    if (checkInTime !== undefined) updateData.checkInTime = checkInTime;
-    if (checkOutTime !== undefined) updateData.checkOutTime = checkOutTime;
-
-    const visitor = await prisma.visitor.update({
-      where: { visitorId: id },
-      data: updateData
-    });
-
-    if (updateData.approvalStatus === 'APPROVED') {
-      sendApprovalEmail(visitor.email, visitor.fullName, visitor.personToMeet, visitor.visitorId)
+    if (updateData.approvalStatus === 'APPROVED' && visitor?.email) {
+      sendApprovalEmail(visitor.email, visitor.fullName, visitor.personToMeet, visitor.visitorId || id)
         .catch(err => console.error('Email send failed (non-blocking):', err));
     }
 
     return NextResponse.json({
       ...visitor,
-      id: visitor.visitorId
+      id: visitor.visitorId || id
     });
   } catch (error) {
     console.error('PATCH /api/visitors/:id error:', error);

@@ -74,6 +74,8 @@ model Visitor {
   // Extra Specific
   companyName     String?
   positionApplied String?
+  interviewDomain String?
+  interviewRole   String?
   meetingAgenda   String?
 
   // Status

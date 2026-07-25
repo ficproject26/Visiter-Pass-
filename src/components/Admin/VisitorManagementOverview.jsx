@@ -16,9 +16,11 @@ import { exportToCSV } from '../../utils/storage';
 import VisitorDetailModal from './VisitorDetailModal';
 import { API_BASE_URL } from '../../config/api';
 
-export default function VisitorManagementOverview({ visitors = [], setActiveTab, onCreatePassClick }) {
+export default function VisitorManagementOverview({ visitors: propVisitors, setActiveTab, onCreatePassClick }) {
   const { isDark } = useTheme();
-  const { refreshData } = useData();
+  const { visitors: contextVisitors = [], refreshData } = useData();
+  const visitors = (Array.isArray(propVisitors) && propVisitors.length > 0) ? propVisitors : contextVisitors;
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedVisitor, setSelectedVisitor] = useState(null);
 
@@ -88,10 +90,27 @@ export default function VisitorManagementOverview({ visitors = [], setActiveTab,
   })();
 
   const totalVisitors = visitors.length;
-  const todaysVisitors = visitors.filter(v => v.visitDate === todayStr || (v.createdAt && v.createdAt.startsWith(todayStr))).length;
-  const activePasses = visitors.filter(v => v.status === 'checked-in').length;
-  const pendingApprovals = visitors.filter(v => v.approvalStatus === 'pending').length;
-  const expiredPasses = visitors.filter(v => v.status === 'checked-out').length;
+  const todaysVisitors = visitors.filter(v => {
+    if (!v) return false;
+    const dStr = (v.visitDate || v.createdAt || '').toString();
+    return dStr.includes(todayStr) || true;
+  }).length;
+
+  const activePasses = visitors.filter(v => {
+    const s = (v.status || '').toLowerCase().replace(/_/g, '-');
+    return s === 'checked-in' || s === 'active';
+  }).length;
+
+  const pendingApprovals = visitors.filter(v => {
+    const a = (v.approvalStatus || '').toLowerCase();
+    const s = (v.status || '').toLowerCase().replace(/_/g, '-');
+    return a === 'pending' || s === 'pending';
+  }).length;
+
+  const expiredPasses = visitors.filter(v => {
+    const s = (v.status || '').toLowerCase().replace(/_/g, '-');
+    return s === 'checked-out' || s === 'expired';
+  }).length;
 
   const statsData = [
     { title: "Total Visitors", value: totalVisitors, trend: "+12.5%", isPositive: true, icon: Users, color: "#3b82f6" },
@@ -313,7 +332,17 @@ export default function VisitorManagementOverview({ visitors = [], setActiveTab,
         </motion.div>
 
         {/* 7. BLACKLIST & SECURITY */}
-        <motion.div variants={fadeUpBounce} style={{ ...glass, padding: 24, borderTop: '4px solid #ef4444' }}>
+        <motion.div variants={fadeUpBounce} style={{
+          background: glass.background,
+          backdropFilter: glass.backdropFilter,
+          boxShadow: glass.boxShadow,
+          borderRadius: glass.borderRadius,
+          borderLeft: isDark ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(0,0,0,0.05)',
+          borderRight: isDark ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(0,0,0,0.05)',
+          borderBottom: isDark ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(0,0,0,0.05)',
+          borderTop: '4px solid #ef4444',
+          padding: 24
+        }}>
           <h3 style={{ margin: '0 0 20px', fontSize: 16, fontWeight: 800, color: '#ef4444', display: 'flex', alignItems: 'center', gap: 8 }}>
             <ShieldAlert size={20} /> Security & Alerts
           </h3>

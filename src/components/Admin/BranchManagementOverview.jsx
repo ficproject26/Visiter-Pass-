@@ -15,16 +15,8 @@ export default function BranchManagementOverview({ setActiveTab }) {
   const { employees, visitors, branches = [] } = useData();
 
   // --- COMPUTE LIVE STATS ---
-  const employeeBranches = employees.map(e => e.location);
-  const visitorBranches = visitors.map(v => v.branch);
-  const allUniqueBranches = new Set([
-    ...branches.map(b => b.name),
-    ...employeeBranches,
-    ...visitorBranches
-  ].filter(Boolean));
-  
-  const totalBranches = allUniqueBranches.size;
-  const regions = new Set([...allUniqueBranches].map(b => b.split(' ')[0]));
+  const totalBranches = branches ? branches.length : 0;
+  const regions = new Set((branches || []).map(b => (b.city || b.name || '').split(' ')[0]).filter(Boolean));
   const activeRegions = regions.size;
 
   const todayStr = (() => {

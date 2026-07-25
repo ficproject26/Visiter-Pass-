@@ -78,7 +78,9 @@ export default function BlacklistedVisitors() {
               style={{
                 background: isDark ? "linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.8))" : "#ffffff",
                 backdropFilter: "blur(20px)",
-                border: isDark ? "1px solid rgba(255,255,255,0.05)" : "1px solid rgba(0,0,0,0.05)",
+                borderLeft: isDark ? "1px solid rgba(255,255,255,0.05)" : "1px solid rgba(0,0,0,0.05)",
+                borderRight: isDark ? "1px solid rgba(255,255,255,0.05)" : "1px solid rgba(0,0,0,0.05)",
+                borderBottom: isDark ? "1px solid rgba(255,255,255,0.05)" : "1px solid rgba(0,0,0,0.05)",
                 borderTop: "3px solid #ef4444",
                 borderRadius: 20,
                 padding: 24,

@@ -132,6 +132,10 @@ export default function VisitorDetailModal({ visitor, onClose, onCheckIn, onChec
                 ["Departure Time", visitor.checkOutTime || "Not departed"],
                 ["Vehicle Number", visitor.vehicleNumber || "—"],
                 ["Appointment Purpose", visitor.purpose],
+                ...(visitor.purpose === "Interview" || visitor.interviewDomain || visitor.positionApplied ? [
+                  ["Interview Domain", visitor.interviewDomain || visitor.companyName || "—"],
+                  ["Position / Role Applied", visitor.interviewRole || visitor.positionApplied || "—"]
+                ] : [])
               ].map(([label, value]) => (
                 <div key={label} style={{ padding: "8px 0", borderBottom: "1px solid #f1f5f9" }}>
                   <div style={{ fontSize: 11, color: "#94a3b8", fontWeight: 600, marginBottom: 2 }}>{label}</div>

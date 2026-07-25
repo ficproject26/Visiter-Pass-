@@ -5,7 +5,7 @@ import { useTheme } from "../../context/ThemeContext";
 
 export default function WebcamCapture({ onCapture, initialPhoto = null }) {
   const [photo, setPhoto] = useState(initialPhoto);
-  const [hasCamera, setHasCamera] = useState(false);
+  const [hasCamera, setHasCamera] = useState(true);
   const [cameraActive, setCameraActive] = useState(false);
   const [permissionError, setPermissionError] = useState(null);
   const [isCapturing, setIsCapturing] = useState(false);
@@ -16,35 +16,52 @@ export default function WebcamCapture({ onCapture, initialPhoto = null }) {
   const streamRef = useRef(null);
   const { isDark } = useTheme();
 
-  useEffect(() => {
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      setHasCamera(true);
-      // Auto-start camera
-      startCamera();
-    }
-    return () => stopCamera();
-  }, []);
-
-  const startCamera = async () => {
+  const startCamera = useCallback(async () => {
     setPermissionError(null);
+    if (typeof window !== "undefined" && !window.isSecureContext && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+      setPermissionError("Camera access requires HTTPS or localhost on mobile. Please use 'Upload Photo' below.");
+      return;
+    }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setPermissionError("Camera API is restricted on HTTP connections. Please upload a photo instead.");
+      return;
+    }
     try {
-      const constraints = {
-        video: { width: 400, height: 400, facingMode: "user" },
-        audio: false
-      };
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play();
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "user" },
+          audio: false
+        });
+      } catch (firstErr) {
+        // Fallback for webcams that don't support facingMode or ideal dimensions
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
       }
+      streamRef.current = stream;
       setCameraActive(true);
     } catch (err) {
       console.warn("Error accessing camera:", err);
-      setPermissionError("Camera access denied. Please upload a file instead.");
+      if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+        setPermissionError("Camera access denied. Please allow camera permission in your browser site settings.");
+      } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
+        setPermissionError("No camera found on this device. Please upload a file instead.");
+      } else if (err.name === "NotReadableError" || err.name === "TrackStartError") {
+        setPermissionError("Camera is currently in use by another application.");
+      } else if (err.name === "SecurityError") {
+        setPermissionError("Camera is blocked over unencrypted HTTP IP. Please upload a photo below.");
+      } else {
+        setPermissionError("Could not enable camera (" + (err.message || "Unknown error") + "). Please upload a file instead.");
+      }
       setCameraActive(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      setHasCamera(true);
+    }
+    return () => stopCamera();
+  }, []);
 
   const stopCamera = () => {
     if (streamRef.current) {
@@ -144,7 +161,19 @@ export default function WebcamCapture({ onCapture, initialPhoto = null }) {
           </div>
         ) : cameraActive ? (
           <div className="relative w-full h-full">
-            <video ref={videoRef} className="w-full h-full object-cover -scale-x-100" playsInline muted autoPlay />
+            <video
+              ref={(node) => {
+                videoRef.current = node;
+                if (node && streamRef.current) {
+                  node.srcObject = streamRef.current;
+                  node.play().catch(() => {});
+                }
+              }}
+              className="w-full h-full object-cover -scale-x-100"
+              playsInline
+              muted
+              autoPlay
+            />
 
             {/* Face Alignment Overlay */}
             <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
@@ -234,7 +263,33 @@ export default function WebcamCapture({ onCapture, initialPhoto = null }) {
       </div>
 
       {permissionError && (
-        <p className="text-rose-500 text-xs font-bold mt-2 bg-rose-500/10 px-3 py-1 rounded-full">{permissionError}</p>
+        <div className="flex flex-col items-center gap-3 mt-3 w-full max-w-[340px] px-2">
+          <div className="text-rose-500 text-xs font-semibold bg-rose-500/15 border border-rose-500/20 px-4 py-2 rounded-xl text-center leading-relaxed w-full shadow-sm">
+            {permissionError}
+          </div>
+          {permissionError.includes("browser site settings") && (
+            <div className={`p-5 rounded-2xl border text-xs text-left w-full shadow-lg transition-all ${isDark ? 'bg-slate-800 border-slate-700 text-slate-200' : 'bg-amber-50 border-amber-200 text-amber-950'}`}>
+              <div className="font-bold flex items-center gap-2 text-amber-500 mb-3 text-xs">
+                <span className="text-base">🔒</span>
+                <span>How to allow camera access:</span>
+              </div>
+              <div className="flex flex-col gap-2.5">
+                <div className="flex items-start gap-2.5 text-[11px] leading-relaxed">
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-amber-500/20 text-amber-500 font-bold flex items-center justify-center text-[10px] mt-0.5">1</span>
+                  <span>Click the 🔒 lock or site settings icon in your browser URL bar.</span>
+                </div>
+                <div className="flex items-start gap-2.5 text-[11px] leading-relaxed">
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-amber-500/20 text-amber-500 font-bold flex items-center justify-center text-[10px] mt-0.5">2</span>
+                  <span>Change <strong>Camera</strong> permission to <strong>Allow</strong>.</span>
+                </div>
+                <div className="flex items-start gap-2.5 text-[11px] leading-relaxed">
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-amber-500/20 text-amber-500 font-bold flex items-center justify-center text-[10px] mt-0.5">3</span>
+                  <span>Click <strong>Enable Camera</strong> button again.</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

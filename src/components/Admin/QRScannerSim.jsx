@@ -119,9 +119,9 @@ export default function QRScannerSim({ visitors = [], onUpdate }) {
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "10px 0" }}>
-            <hr style={{ flex: 1, border: 0, borderTop: "1px solid #e2e8f0" }} />
+            <hr style={{ flex: 1, borderTop: "1px solid #e2e8f0", borderLeft: "none", borderRight: "none", borderBottom: "none" }} />
             <span style={{ fontSize: 11, color: "#94a3b8", fontWeight: 700 }}>OR</span>
-            <hr style={{ flex: 1, border: 0, borderTop: "1px solid #e2e8f0" }} />
+            <hr style={{ flex: 1, borderTop: "1px solid #e2e8f0", borderLeft: "none", borderRight: "none", borderBottom: "none" }} />
           </div>
 
           {/* Manual input code form */}

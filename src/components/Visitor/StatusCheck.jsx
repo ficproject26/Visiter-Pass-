@@ -38,16 +38,20 @@ export default function StatusCheck({ onNavigate: externalOnNavigate }) {
       }
       const visitors = await res.json();
       
-      const found = visitors.find(
-        (v) =>
-          v.id.toLowerCase() === query.trim().toLowerCase() ||
-          v.email.toLowerCase() === query.trim().toLowerCase()
-      );
+      const target = query.trim().toLowerCase();
+      const found = visitors.find((v) => {
+        if (!v) return false;
+        const id1 = (v.id || '').toString().toLowerCase();
+        const id2 = (v.visitorId || '').toString().toLowerCase();
+        const email = (v.email || '').toString().toLowerCase();
+        const phone = (v.phone || '').toString().toLowerCase();
+        return id1 === target || id2 === target || email === target || phone === target;
+      });
 
       if (found) {
         setVisitor(found);
       } else {
-        setError("No registration found with that ID or Email Address.");
+        setError("No registration found with that Pass ID, Email, or Phone Number.");
       }
     } catch (err) {
       console.error("Failed to query live visitor data:", err);

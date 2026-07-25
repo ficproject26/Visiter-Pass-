@@ -21,7 +21,7 @@ export default function RegistrationForm({ onNavigate: externalOnNavigate, onNew
   const [form, setForm] = useState({
     visitorType: "Guest Visitor", fullName: "", phone: "", emergencyContact: "", email: "", gender: "Male",
     idType: "", idNumber: "", idProof: null,
-    purpose: "", personToMeet: "", department: "", branch: "", visitDate: "", checkInTime: "",
+    purpose: "", interviewDomain: "", interviewRole: "", personToMeet: "", department: "", branch: "", visitDate: "", checkInTime: "",
     vehicleNumber: "", photo: null
   });
   const [errors, setErrors] = useState({});
@@ -29,7 +29,7 @@ export default function RegistrationForm({ onNavigate: externalOnNavigate, onNew
   const [submitted, setSubmitted] = useState(false);
   const [newVisitor, setNewVisitor] = useState(null);
   const { isDark } = useTheme();
-  const { employees, refreshData } = useData();
+  const { employees, branches = [], refreshData } = useData();
 
   // Dynamic Options from backend data — exclude system/admin roles from department list
   const adminRoles = ['sub admin', 'administrator', 'super admin', 'sub administrator'];
@@ -38,7 +38,9 @@ export default function RegistrationForm({ onNavigate: externalOnNavigate, onNew
       .map(e => e.department)
       .filter(d => d && !adminRoles.includes(d.toLowerCase()))
   )].sort();
-  const dynamicBranches = [...new Set(employees.map(e => e.location).filter(Boolean))].sort();
+
+  // Office Location / Branch options come strictly from Admin-created branches in Database
+  const dynamicBranches = [...new Set(branches.map(b => b.name).filter(Boolean))].sort();
   const dynamicHosts = employees.map(e => e.name).sort();
 
   const setField = (key, value) => {
@@ -140,6 +142,10 @@ export default function RegistrationForm({ onNavigate: externalOnNavigate, onNew
     if (!form.idProof) e.idProof = "ID proof image is required";
 
     if (!form.purpose) e.purpose = "Select visit purpose";
+    else if (form.purpose === "Interview") {
+      if (!form.interviewDomain) e.interviewDomain = "Select interview domain (IT, Banking, BPO, etc.)";
+      if (!form.interviewRole.trim()) e.interviewRole = "Enter position/role applied for";
+    }
     if (!form.personToMeet.trim()) e.personToMeet = "Host name is required";
     if (!form.department) e.department = "Select host department";
     if (!form.branch) e.branch = "Select location/branch";
@@ -169,21 +175,25 @@ export default function RegistrationForm({ onNavigate: externalOnNavigate, onNew
     };
 
     try {
-      await fetch(`${API_BASE_URL}/api/visitors`, {
+      const res = await fetch(`${API_BASE_URL}/api/visitors`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(visitor)
       });
-      refreshData();
-    } catch (err) {
-      console.error(err);
-    }
 
-    // Call onNewVisitor just for App.jsx backward compatibility if needed, but it's redundant now.
-    // onNewVisitor(visitor);
-    
-    setNewVisitor(visitor);
-    setSubmitted(true);
+      if (res.ok) {
+        const created = await res.json();
+        setNewVisitor(created || visitor);
+        setSubmitted(true);
+        refreshData();
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        alert(`Failed to register visitor: ${errData.error || 'Database Error'}`);
+      }
+    } catch (err) {
+      console.error("Registration error:", err);
+      alert("Network error: Could not reach backend server.");
+    }
   };
 
   if (submitted && newVisitor) {
@@ -557,6 +567,40 @@ export default function RegistrationForm({ onNavigate: externalOnNavigate, onNew
                 {errors.purpose && <span style={{ fontSize: 11, color: "#ef4444" }}>{errors.purpose}</span>}
               </div>
 
+              {/* Conditional Interview Fields */}
+              {form.purpose === "Interview" && (
+                <>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? "#38bdf8" : "#0284c7" }}>Interview Domain / Category *</label>
+                    <select
+                      value={form.interviewDomain}
+                      onChange={e => setField("interviewDomain", e.target.value)}
+                      className="form-input"
+                      style={{ borderColor: errors.interviewDomain ? "#ef4444" : "#0284c7", cursor: "pointer" }}
+                    >
+                      <option value="">Select Domain (IT, Banking, BPO...)</option>
+                      {["IT", "Banking", "BPO", "Healthcare", "Core Engineering", "Finance & Accounts", "Sales & Marketing", "Other"].map(d => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
+                    </select>
+                    {errors.interviewDomain && <span style={{ fontSize: 11, color: "#ef4444" }}>{errors.interviewDomain}</span>}
+                  </div>
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? "#38bdf8" : "#0284c7" }}>Job Role / Position Applied *</label>
+                    <input
+                      type="text"
+                      value={form.interviewRole}
+                      onChange={e => setField("interviewRole", e.target.value)}
+                      placeholder="e.g. Software Engineer, Loan Officer, BPO Agent"
+                      className="form-input"
+                      style={{ borderColor: errors.interviewRole ? "#ef4444" : "#0284c7" }}
+                    />
+                    {errors.interviewRole && <span style={{ fontSize: 11, color: "#ef4444" }}>{errors.interviewRole}</span>}
+                  </div>
+                </>
+              )}
+
               {/* Host person */}
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                 <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? "rgba(248,250,252,0.55)" : "#475569" }}>Person to Meet (Host) *</label>
@@ -599,8 +643,8 @@ export default function RegistrationForm({ onNavigate: externalOnNavigate, onNew
                   className="form-input"
                   style={{ borderColor: errors.branch ? "#ef4444" : "", cursor: "pointer" }}
                 >
-                  <option value="">Select location...</option>
-                  {dynamicBranches.length > 0 ? dynamicBranches.map(o => <option key={o} value={o}>{o}</option>) : BRANCHES.map(o => <option key={o} value={o}>{o}</option>)}
+                  <option value="">{dynamicBranches.length === 0 ? "No branches available (Create branch in Admin)" : "Select location..."}</option>
+                  {dynamicBranches.map(o => <option key={o} value={o}>{o}</option>)}
                 </select>
                 {errors.branch && <span style={{ fontSize: 11, color: "#ef4444" }}>{errors.branch}</span>}
               </div>
