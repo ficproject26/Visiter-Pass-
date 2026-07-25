@@ -125,7 +125,7 @@ export default function RegistrationForm({ onNavigate: externalOnNavigate, onNew
     const e = {};
     if (!form.fullName.trim()) e.fullName = "Full name is required";
     if (!/^\d{10}$/.test(form.phone)) e.phone = "Enter a valid 10-digit phone number";
-    if (!/^\d{10}$/.test(form.emergencyContact)) e.emergencyContact = "Enter a valid 10-digit emergency contact";
+    if (form.emergencyContact && !/^\d{10}$/.test(form.emergencyContact)) e.emergencyContact = "Enter a valid 10-digit emergency contact";
     if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Valid email is required";
 
     if (!form.idType) e.idType = "Select an ID type";
@@ -457,7 +457,7 @@ export default function RegistrationForm({ onNavigate: externalOnNavigate, onNew
                     {errors.phone && <span style={{ fontSize: 11, color: "#ef4444" }}>{errors.phone}</span>}
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? "rgba(248,250,252,0.55)" : "#475569" }}>Emergency Contact *</label>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? "rgba(248,250,252,0.55)" : "#475569" }}>Emergency Contact (Optional)</label>
                     <input
                       type="tel"
                       value={form.emergencyContact}
