@@ -144,7 +144,6 @@ export default function RegistrationForm({ onNavigate: externalOnNavigate, onNew
     if (!form.purpose) e.purpose = "Select visit purpose";
     else if (form.purpose === "Interview") {
       if (!form.interviewDomain) e.interviewDomain = "Select interview domain (IT, Banking, BPO, etc.)";
-      if (!form.interviewRole.trim()) e.interviewRole = "Enter position/role applied for";
     }
     if (!form.personToMeet.trim()) e.personToMeet = "Host name is required";
     if (!form.department) e.department = "Select host department";
@@ -569,36 +568,21 @@ export default function RegistrationForm({ onNavigate: externalOnNavigate, onNew
 
               {/* Conditional Interview Fields */}
               {form.purpose === "Interview" && (
-                <>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? "#38bdf8" : "#0284c7" }}>Interview Domain / Category *</label>
-                    <select
-                      value={form.interviewDomain}
-                      onChange={e => setField("interviewDomain", e.target.value)}
-                      className="form-input"
-                      style={{ borderColor: errors.interviewDomain ? "#ef4444" : "#0284c7", cursor: "pointer" }}
-                    >
-                      <option value="">Select Domain (IT, Banking, BPO...)</option>
-                      {["IT", "Banking", "BPO", "Healthcare", "Core Engineering", "Finance & Accounts", "Sales & Marketing", "Other"].map(d => (
-                        <option key={d} value={d}>{d}</option>
-                      ))}
-                    </select>
-                    {errors.interviewDomain && <span style={{ fontSize: 11, color: "#ef4444" }}>{errors.interviewDomain}</span>}
-                  </div>
-
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? "#38bdf8" : "#0284c7" }}>Job Role / Position Applied *</label>
-                    <input
-                      type="text"
-                      value={form.interviewRole}
-                      onChange={e => setField("interviewRole", e.target.value)}
-                      placeholder="e.g. Software Engineer, Loan Officer, BPO Agent"
-                      className="form-input"
-                      style={{ borderColor: errors.interviewRole ? "#ef4444" : "#0284c7" }}
-                    />
-                    {errors.interviewRole && <span style={{ fontSize: 11, color: "#ef4444" }}>{errors.interviewRole}</span>}
-                  </div>
-                </>
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? "#38bdf8" : "#0284c7" }}>Interview Domain / Category *</label>
+                  <select
+                    value={form.interviewDomain}
+                    onChange={e => setField("interviewDomain", e.target.value)}
+                    className="form-input"
+                    style={{ borderColor: errors.interviewDomain ? "#ef4444" : "#0284c7", cursor: "pointer" }}
+                  >
+                    <option value="">Select Domain (IT, Banking, BPO...)</option>
+                    {["IT", "Banking", "BPO", "Healthcare", "Core Engineering", "Finance & Accounts", "Sales & Marketing", "Other"].map(d => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
+                  {errors.interviewDomain && <span style={{ fontSize: 11, color: "#ef4444" }}>{errors.interviewDomain}</span>}
+                </div>
               )}
 
               {/* Host person */}
