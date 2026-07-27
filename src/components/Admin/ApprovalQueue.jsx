@@ -156,6 +156,14 @@ export default function ApprovalQueue() {
                                 )}
                               </div>
                               <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#64748b' }}>Pass ID: <strong style={{ color: '#38bdf8' }}>{q.id || q.visitorId}</strong></div>
+                              <div style={{ fontSize: 11, color: isDark ? '#cbd5e1' : '#475569', marginTop: 3 }}>
+                                📅 Visit Date: <strong style={{ color: '#10b981' }}>{q.visitDate || 'Today'}</strong>
+                              </div>
+                              <div style={{ fontSize: 11, color: isDark ? '#94a3b8' : '#64748b', marginTop: 1 }}>
+                                🕒 Applied: <span style={{ color: isDark ? '#cbd5e1' : '#475569' }}>
+                                  {q.createdAt ? new Date(q.createdAt).toLocaleString('en-IN', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Just now'}
+                                </span>
+                              </div>
                             </div>
                           </div>
                         </td>
@@ -251,7 +259,10 @@ export default function ApprovalQueue() {
                         </div>
                         <div>
                           <div style={{ fontSize: 14, fontWeight: 700, color: isDark ? '#f8fafc' : '#0f172a' }}>{p.fullName || 'Unknown Visitor'}</div>
-                          <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#64748b' }}>{p.company || 'Personal'}</div>
+                          <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#64748b' }}>Pass ID: <strong style={{ color: '#38bdf8' }}>{p.id || p.visitorId}</strong></div>
+                          <div style={{ fontSize: 11, color: isDark ? '#cbd5e1' : '#475569', marginTop: 2 }}>
+                            📅 Visit Date: <strong style={{ color: '#10b981' }}>{p.visitDate || 'Today'}</strong>
+                          </div>
                         </div>
                       </div>
                     </td>
