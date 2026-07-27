@@ -530,10 +530,10 @@ export default function AdminDashboard({ visitors: propVisitors, onNavigate: ext
           )}
           {activeTab === "branch_management"    && <BranchManagementOverview setActiveTab={setActiveTab} />}
           {activeTab === "employee_management"  && <EmployeeManagementOverview onAddEmployeeClick={() => setShowEmpModal(true)} />}
-          {activeTab === "reports_analytics"    && <ReportsOverview />}
-          {activeTab === "notifications"        && <NotificationsOverview />}
-          {activeTab === "verification_center"  && <VerificationOverview />}
-          {activeTab === "settings"             && <SettingsOverview />}
+          {activeTab === "reports_analytics"    && <ReportsOverview setActiveTab={setActiveTab} />}
+          {activeTab === "notifications"        && <NotificationsOverview setActiveTab={setActiveTab} />}
+          {activeTab === "verification_center"  && <VerificationOverview setActiveTab={setActiveTab} />}
+          {activeTab === "settings"             && <SettingsOverview setActiveTab={setActiveTab} />}
 
           {/* Sub Admin specific tabs */}
           {activeTab === "appointments" && (
@@ -552,7 +552,7 @@ export default function AdminDashboard({ visitors: propVisitors, onNavigate: ext
              "branch_management","employee_management","reports_analytics","notifications",
              "verification_center","settings",
              "appointments","vendor_management"].includes(activeTab) && (
-            <GenericModule tabId={activeTab} />
+            <GenericModule tabId={activeTab} setActiveTab={setActiveTab} />
           )}
 
         </div>{/* /dash-content */}
