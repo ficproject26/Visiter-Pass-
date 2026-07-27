@@ -92,8 +92,9 @@ export default function AdminDashboard({ visitors: propVisitors, onNavigate: ext
   })();
   const todayBookings = visitors.filter(v => {
     if (!v) return false;
-    const dStr = (v.visitDate || v.createdAt || '').toString();
-    return dStr.includes(todayStr) || true;
+    const visitD = v.visitDate ? v.visitDate.toString() : '';
+    const createdD = v.createdAt ? new Date(v.createdAt).toISOString().split('T')[0] : '';
+    return visitD.includes(todayStr) || createdD === todayStr;
   }).length;
 
   const filtered = visitors.filter(v => {

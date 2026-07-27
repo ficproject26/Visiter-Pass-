@@ -92,8 +92,9 @@ export default function VisitorManagementOverview({ visitors: propVisitors, setA
   const totalVisitors = visitors.length;
   const todaysVisitors = visitors.filter(v => {
     if (!v) return false;
-    const dStr = (v.visitDate || v.createdAt || '').toString();
-    return dStr.includes(todayStr) || true;
+    const visitD = v.visitDate ? v.visitDate.toString() : '';
+    const createdD = v.createdAt ? new Date(v.createdAt).toISOString().split('T')[0] : '';
+    return visitD.includes(todayStr) || createdD === todayStr;
   }).length;
 
   const activePasses = visitors.filter(v => {
