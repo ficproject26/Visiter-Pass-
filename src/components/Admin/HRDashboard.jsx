@@ -50,11 +50,7 @@ export default function HRDashboard({ visitors = [], onUpdate, onNavigate: exter
           <BrandLogo onNavigate={onNavigate} variant="sidebar" isDark={true} />
         </div>
 
-        {/* Theme toggle row */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 0.75rem" }}>
-          <ThemeToggle />
-          <span style={{ color: "#94a3b8", fontSize: 11, fontWeight: 600 }}>{isDark ? "Dark Mode" : "Light Mode"}</span>
-        </div>
+
 
         {/* Navigation items */}
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
