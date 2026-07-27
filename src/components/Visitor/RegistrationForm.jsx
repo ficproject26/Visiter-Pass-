@@ -145,7 +145,6 @@ export default function RegistrationForm({ onNavigate: externalOnNavigate, onNew
     else if (form.purpose === "Interview") {
       if (!form.interviewDomain) e.interviewDomain = "Select interview domain (IT, Banking, BPO, etc.)";
     }
-    if (!form.personToMeet.trim()) e.personToMeet = "Host name is required";
     if (!form.department) e.department = "Select host department";
     if (!form.branch) e.branch = "Select location/branch";
     if (!form.visitDate) e.visitDate = "Select visit date";
@@ -154,6 +153,24 @@ export default function RegistrationForm({ onNavigate: externalOnNavigate, onNew
     if (!form.photo) e.photo = "Live photo is required";
 
     return e;
+  };
+
+  const uploadImageToCloudinary = async (imgData) => {
+    if (!imgData || typeof imgData !== "string" || imgData.startsWith("http")) return imgData;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/upload`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: imgData })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.url) return data.url;
+      }
+    } catch (err) {
+      console.warn("Cloudinary upload fallback to base64:", err);
+    }
+    return imgData;
   };
 
   const handleSubmit = async (e) => {
@@ -165,8 +182,17 @@ export default function RegistrationForm({ onNavigate: externalOnNavigate, onNew
       return;
     }
 
+    // Upload photo and ID proof to Cloudinary in parallel
+    const [uploadedPhoto, uploadedIdProof] = await Promise.all([
+      uploadImageToCloudinary(form.photo),
+      uploadImageToCloudinary(form.idProof)
+    ]);
+
     const visitor = {
       ...form,
+      personToMeet: form.personToMeet || "Branch Admin",
+      photo: uploadedPhoto,
+      idProof: uploadedIdProof,
       id: generateId(),
       status: "PENDING",
       approvalStatus: "PENDING",
@@ -407,23 +433,7 @@ export default function RegistrationForm({ onNavigate: externalOnNavigate, onNew
                 </div>
               )}
 
-              {/* Host person */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? "rgba(248,250,252,0.55)" : "#475569" }}>Person to Meet (Host) *</label>
-                <input
-                  type="text"
-                  list="host-options"
-                  value={form.personToMeet}
-                  onChange={e => setField("personToMeet", e.target.value)}
-                  placeholder="e.g. Priyan Sharma"
-                  className="form-input"
-                  style={{ borderColor: errors.personToMeet ? "#ef4444" : "" }}
-                />
-                <datalist id="host-options">
-                  {dynamicHosts.map(o => <option key={o} value={o} />)}
-                </datalist>
-                {errors.personToMeet && <span style={{ fontSize: 11, color: "#ef4444" }}>{errors.personToMeet}</span>}
-              </div>
+
 
               {/* Department */}
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
