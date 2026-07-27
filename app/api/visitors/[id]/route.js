@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { getVisitors, updateVisitor, getVisitorById } from '../../../../lib/dbHandler';
 import { sendApprovalEmail } from '../../../../lib/services/emailService';
