@@ -4,12 +4,23 @@ import { prisma } from '../../../lib/prisma';
 export async function GET() {
   try {
     const employees = await prisma.employee.findMany({
-      orderBy: { createdAt: 'desc' }
+      select: {
+        id: true,
+        empId: true,
+        name: true,
+        email: true,
+        password: true,
+        role: true,
+        department: true,
+        location: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true
+      }
     });
     const mapped = employees.map((emp) => ({
       ...emp,
-      id: emp.empId,
-      photo: emp.photoUrl
+      id: emp.empId
     }));
     return NextResponse.json(mapped);
   } catch (error) {
