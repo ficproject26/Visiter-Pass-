@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { updateVisitor } from '../../../../lib/dbHandler';
+import { getVisitors, updateVisitor } from '../../../../lib/dbHandler';
 import { sendApprovalEmail } from '../../../../lib/services/emailService';
 
 export async function PATCH(req, { params }) {
@@ -12,6 +12,7 @@ export async function PATCH(req, { params }) {
     if (body.status !== undefined) updateData.status = String(body.status).toUpperCase();
     if (body.checkInTime !== undefined) updateData.checkInTime = body.checkInTime;
     if (body.checkOutTime !== undefined) updateData.checkOutTime = body.checkOutTime;
+    if (body.arrivedAtGate !== undefined) updateData.arrivedAtGate = Boolean(body.arrivedAtGate);
 
     const visitor = await updateVisitor(id, updateData);
 
@@ -33,8 +34,12 @@ export async function PATCH(req, { params }) {
 export async function GET(req, { params }) {
   try {
     const { id } = await params;
-    const visitor = await prisma.visitor.findUnique({
-      where: { visitorId: id }
+    const visitors = await getVisitors();
+    const cleanId = String(id).toUpperCase().replace(/-/g, "");
+
+    const visitor = visitors.find(v => {
+      const vId = String(v.id || v.visitorId || "").toUpperCase().replace(/-/g, "");
+      return vId === cleanId;
     });
 
     if (!visitor) {
@@ -43,10 +48,11 @@ export async function GET(req, { params }) {
 
     return NextResponse.json({
       ...visitor,
-      id: visitor.visitorId
+      id: visitor.visitorId || visitor.id
     });
   } catch (error) {
     console.error('GET /api/visitors/:id error:', error);
     return NextResponse.json({ error: 'Failed to fetch visitor' }, { status: 500 });
   }
 }
+

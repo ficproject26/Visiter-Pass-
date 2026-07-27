@@ -147,8 +147,15 @@ export default function ApprovalQueue() {
                               {q.fullName ? q.fullName.charAt(0).toUpperCase() : '?'}
                             </div>
                             <div>
-                              <div style={{ fontSize: 14, fontWeight: 700, color: isDark ? '#f8fafc' : '#0f172a' }}>{q.fullName || 'Unknown Visitor'}</div>
-                              <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#64748b' }}>{q.company || 'Personal'}</div>
+                              <div style={{ fontSize: 14, fontWeight: 700, color: isDark ? '#f8fafc' : '#0f172a', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                {q.fullName || 'Unknown Visitor'}
+                                {q.arrivedAtGate && (
+                                  <span style={{ background: '#ef4444', color: 'white', fontSize: 10, fontWeight: 800, padding: '2px 6px', borderRadius: 4, animation: 'pulse 1.5s infinite' }}>
+                                    🚨 WAITING AT GATE
+                                  </span>
+                                )}
+                              </div>
+                              <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#64748b' }}>Pass ID: <strong style={{ color: '#38bdf8' }}>{q.id || q.visitorId}</strong></div>
                             </div>
                           </div>
                         </td>
