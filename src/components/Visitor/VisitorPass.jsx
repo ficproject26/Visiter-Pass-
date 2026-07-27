@@ -24,10 +24,31 @@ export default function VisitorPass({ visitor, onNavigate: externalOnNavigate })
     const passEl = document.getElementById("printable-visitor-pass");
     if (!passEl) return;
     try {
-      const canvas = await html2canvas(passEl, { scale: 3, useCORS: true, backgroundColor: "#ffffff" });
+      if (document.fonts) {
+        await document.fonts.ready;
+      }
+      const canvas = await html2canvas(passEl, {
+        scale: 3,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#ffffff",
+        scrollX: 0,
+        scrollY: 0,
+        onclone: (clonedDoc) => {
+          const clonedPass = clonedDoc.getElementById("printable-visitor-pass");
+          if (clonedPass) {
+            clonedPass.style.transform = "none";
+            const textEls = clonedPass.querySelectorAll("h3, div, span, p");
+            textEls.forEach(el => {
+              el.style.overflow = "visible";
+              el.style.lineHeight = el.style.lineHeight || "1.35";
+            });
+          }
+        }
+      });
       const link = document.createElement("a");
-      link.download = `VisitorPass_${visitor.id}_${visitor.fullName.replace(/\s+/g, "_")}.png`;
-      link.href = canvas.toDataURL("image/png");
+      link.download = `VisitorPass_${visitor.id}_${(visitor.fullName || "pass").replace(/\s+/g, "_")}.png`;
+      link.href = canvas.toDataURL("image/png", 1.0);
       link.click();
     } catch (err) {
       console.error("Download failed:", err);
@@ -263,14 +284,13 @@ export default function VisitorPass({ visitor, onNavigate: externalOnNavigate })
                   color: "#0f172a",
                   marginBottom: 3,
                   letterSpacing: "-0.4px",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
+                  lineHeight: "1.35",
+                  paddingBottom: "2px"
                 }}
               >
                 {visitor.fullName}
               </h3>
-              <div style={{ fontSize: 11, color: "#94a3b8", fontWeight: 600, marginBottom: 10, letterSpacing: "0.3px" }}>
+              <div style={{ fontSize: 11, color: "#94a3b8", fontWeight: 600, marginBottom: 10, letterSpacing: "0.3px", lineHeight: "1.3" }}>
                 {visitor.idType} · {visitor.idNumber}
               </div>
 
@@ -281,16 +301,15 @@ export default function VisitorPass({ visitor, onNavigate: externalOnNavigate })
                   { icon: "🏢", label: "Dept", val: visitor.department },
                   { icon: "🎯", label: "Purpose", val: visitor.purpose },
                 ].map(({ icon, label, val }) => (
-                  <div key={label} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
+                  <div key={label} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, lineHeight: "1.4" }}>
                     <span style={{ fontSize: 11 }}>{icon}</span>
                     <span style={{ color: "#94a3b8", fontWeight: 600, minWidth: 50 }}>{label}:</span>
                     <span
                       style={{
                         color: "#1e293b",
                         fontWeight: 600,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
+                        lineHeight: "1.4",
+                        paddingBottom: "1px"
                       }}
                     >
                       {val}
@@ -312,7 +331,7 @@ export default function VisitorPass({ visitor, onNavigate: externalOnNavigate })
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 12 }}>
 
             {/* Info grid */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 20px", flex: 1 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px 20px", flex: 1 }}>
               {[
                 { label: "VISIT DATE", val: visitor.visitDate, highlight: false },
                 { label: "ENTRY TIME", val: visitor.checkInTime || "—", highlight: false },
@@ -320,17 +339,16 @@ export default function VisitorPass({ visitor, onNavigate: externalOnNavigate })
                 { label: "PHONE", val: visitor.phone, highlight: false },
               ].map(({ label, val }) => (
                 <div key={label}>
-                  <div style={{ fontSize: 8, color: "#94a3b8", fontWeight: 700, letterSpacing: "1px", marginBottom: 3 }}>
+                  <div style={{ fontSize: 8, color: "#94a3b8", fontWeight: 700, letterSpacing: "1px", marginBottom: 3, lineHeight: "1.2" }}>
                     {label}
                   </div>
                   <div
                     style={{
-                      fontSize: 12,
-                      fontWeight: 700,
+                      fontSize: 13,
+                      fontWeight: 800,
                       color: "#0f172a",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
+                      lineHeight: "1.4",
+                      paddingBottom: "3px"
                     }}
                   >
                     {val}
