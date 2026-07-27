@@ -57,6 +57,7 @@ export default function AdminDashboard({ visitors: propVisitors, onNavigate: ext
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterDept, setFilterDept] = useState("all");
   const [filterBranch, setFilterBranch] = useState("all");
+  const [filterDate, setFilterDate] = useState("all");
   const [selectedVisitor, setSelectedVisitor] = useState(null);
   const [activeTab, setActiveTab] = useState("dashboard");
   const [showEmpModal, setShowEmpModal] = useState(false);
@@ -67,6 +68,16 @@ export default function AdminDashboard({ visitors: propVisitors, onNavigate: ext
   const { visitors: contextVisitors, refreshData } = useData();
   
   const visitors = propVisitors || contextVisitors || [];
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '—';
+    if (typeof dateStr === 'string' && dateStr.includes('T')) {
+      dateStr = dateStr.split('T')[0];
+    }
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return String(dateStr);
+    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  };
 
   const onUpdate = propOnUpdate || (async (id, updates) => {
     try {
@@ -101,14 +112,28 @@ export default function AdminDashboard({ visitors: propVisitors, onNavigate: ext
     const q = search.toLowerCase();
     const matchSearch =
       !q ||
-      v.fullName.toLowerCase().includes(q) ||
-      v.id.toLowerCase().includes(q) ||
-      v.personToMeet.toLowerCase().includes(q) ||
-      v.purpose.toLowerCase().includes(q);
+      (v.fullName || '').toLowerCase().includes(q) ||
+      (v.id || '').toLowerCase().includes(q) ||
+      (v.personToMeet || '').toLowerCase().includes(q) ||
+      (v.purpose || '').toLowerCase().includes(q);
     const matchStatus = filterStatus === "all" || v.status === filterStatus;
     const matchDept = filterDept === "all" || v.department === filterDept;
     const matchBranch = filterBranch === "all" || v.branch === filterBranch;
-    return matchSearch && matchStatus && matchDept && matchBranch;
+
+    let matchDate = true;
+    const vDateStr = v.visitDate ? v.visitDate.toString().split('T')[0] : '';
+    const vCreatedStr = v.createdAt ? new Date(v.createdAt).toISOString().split('T')[0] : '';
+    const effectiveDate = vDateStr || vCreatedStr;
+
+    if (filterDate === 'today') {
+      matchDate = effectiveDate === todayStr || vDateStr.includes(todayStr);
+    } else if (filterDate === 'upcoming') {
+      matchDate = effectiveDate > todayStr;
+    } else if (filterDate === 'past') {
+      matchDate = effectiveDate < todayStr;
+    }
+
+    return matchSearch && matchStatus && matchDept && matchBranch && matchDate;
   });
 
   const handleCheckIn = (id) => {
@@ -380,6 +405,12 @@ export default function AdminDashboard({ visitors: propVisitors, onNavigate: ext
                     style={{ paddingLeft: 36, width: "100%" }}
                   />
                 </div>
+                <select value={filterDate} onChange={e => setFilterDate(e.target.value)} className="form-input" style={{ width: "auto", minWidth: 140, cursor: "pointer", fontWeight: 700, color: filterDate === "today" ? "#4f46e5" : "inherit" }}>
+                  <option value="all">All Dates</option>
+                  <option value="today">Today Only (Jul 27)</option>
+                  <option value="upcoming">Upcoming Visits</option>
+                  <option value="past">Past Visits</option>
+                </select>
                 <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="form-input" style={{ width: "auto", minWidth: 130, cursor: "pointer" }}>
                   <option value="all">All States</option>
                   <option value="pending">Pending Desk</option>
@@ -404,7 +435,7 @@ export default function AdminDashboard({ visitors: propVisitors, onNavigate: ext
                 <table className="admin-table" style={{ minWidth: 800 }}>
                   <thead>
                     <tr>
-                      {["Visitor Profile", "Appointment Details", "Department", "Location", "Check-In / Out", "Status", "Authorization", "Actions"].map(h => (
+                      {["Visitor Profile", "Appointment Details", "Department", "Location", "Visit Date & Time", "Status", "Authorization", "Actions"].map(h => (
                         <th key={h}>{h}</th>
                       ))}
                     </tr>
@@ -451,8 +482,11 @@ export default function AdminDashboard({ visitors: propVisitors, onNavigate: ext
                           <td style={{ fontSize: 13, fontWeight: 500, color: isDark ? "#cbd5e1" : "#475569" }}>{v.department}</td>
                           <td style={{ fontSize: 13, fontWeight: 500, color: isDark ? "#cbd5e1" : "#475569" }}>{v.branch}</td>
                           <td>
-                            <div style={{ fontSize: 13, fontWeight: 600, color: isDark ? "#e2e8f0" : "#334155" }}>{v.visitDate}</div>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: isDark ? "#e2e8f0" : "#334155" }}>{formatDate(v.visitDate)}</div>
                             <div style={{ fontSize: 11, color: "#94a3b8" }}>
+                              {v.checkInTime ? `${v.checkInTime}` : "—"}{v.checkOutTime ? ` to ${v.checkOutTime}` : ""}
+                            </div>
+                          </td>
                               {v.checkInTime ? `${v.checkInTime}` : "—"}{v.checkOutTime ? ` to ${v.checkOutTime}` : ""}
                             </div>
                           </td>
