@@ -2,7 +2,34 @@
 import React from "react";
 import QRCode from "../UI/QRCode";
 
-export default function VisitorDetailModal({ visitor, onClose, onCheckIn, onCheckOut, onApprove, onReject }) {
+export default function VisitorDetailModal({ visitor: initialVisitor, onClose, onCheckIn, onCheckOut, onApprove, onReject }) {
+  const [visitor, setVisitor] = React.useState(initialVisitor);
+  const [loading, setLoading] = React.useState(false);
+
+  React.useEffect(() => {
+    setVisitor(initialVisitor);
+    if (initialVisitor && (!initialVisitor.photo || !initialVisitor.idProof)) {
+      const fetchFullVisitor = async () => {
+        try {
+          setLoading(true);
+          const vId = initialVisitor.id || initialVisitor.visitorId;
+          const res = await fetch(`/api/visitors/${vId}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data) {
+              setVisitor(data);
+            }
+          }
+        } catch (err) {
+          console.error("Failed to fetch full visitor details:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchFullVisitor();
+    }
+  }, [initialVisitor]);
+
   if (!visitor) return null;
 
   return (
@@ -87,27 +114,29 @@ export default function VisitorDetailModal({ visitor, onClose, onCheckIn, onChec
               {/* Status Badge */}
               <span 
                 style={{ 
-                  background: visitor.status === "checked-in" ? "#dcfce7" : visitor.status === "checked-out" ? "#f1f5f9" : "#fff1f2", color: visitor.status === "checked-in" ? "#15803d" : visitor.status === "checked-out" ? "#475569" : "#be123c", 
+                  background: (visitor.status || '').toLowerCase().replace(/_/g, '-') === "checked-in" ? "#dcfce7" : (visitor.status || '').toLowerCase().replace(/_/g, '-') === "checked-out" ? "#f1f5f9" : "#fff1f2", 
+                  color: (visitor.status || '').toLowerCase().replace(/_/g, '-') === "checked-in" ? "#15803d" : (visitor.status || '').toLowerCase().replace(/_/g, '-') === "checked-out" ? "#475569" : "#be123c", 
                   borderRadius: 20, 
                   padding: "4px 12px", 
                   fontSize: 11, 
                   fontWeight: 700 
                 }}
               >
-                {visitor.status === "checked-in" ? "Checked In" : visitor.status === "checked-out" ? "Checked Out" : "Pending"}
+                {(visitor.status || '').toLowerCase().replace(/_/g, '-') === "checked-in" ? "Checked In" : (visitor.status || '').toLowerCase().replace(/_/g, '-') === "checked-out" ? "Checked Out" : "Pending"}
               </span>
 
               {/* Approval Badge */}
               <span 
                 style={{ 
-                  background: visitor.approvalStatus === "approved" ? "#f0fdfa" : visitor.approvalStatus === "rejected" ? "#fef2f2" : "#fff1f2", color: visitor.approvalStatus === "approved" ? "#0f766e" : visitor.approvalStatus === "rejected" ? "#991b1b" : "#be123c", 
+                  background: (visitor.approvalStatus || '').toLowerCase() === "approved" ? "#f0fdfa" : (visitor.approvalStatus || '').toLowerCase() === "rejected" ? "#fef2f2" : "#fff1f2", 
+                  color: (visitor.approvalStatus || '').toLowerCase() === "approved" ? "#0f766e" : (visitor.approvalStatus || '').toLowerCase() === "rejected" ? "#991b1b" : "#be123c", 
                   borderRadius: 20, 
                   padding: "4px 12px", 
                   fontSize: 11, 
                   fontWeight: 700 
                 }}
               >
-                {visitor.approvalStatus.toUpperCase()}
+                {(visitor.approvalStatus || '').toUpperCase()}
               </span>
             </div>
             
@@ -151,7 +180,7 @@ export default function VisitorDetailModal({ visitor, onClose, onCheckIn, onChec
         <div style={{ padding: "1.25rem 1.5rem", background: "#f8fafc", borderTop: "1px solid #e2e8f0", display: "flex", gap: 10, justifyContent: "flex-end" }}>
           
           {/* Host approvals */}
-          {visitor.approvalStatus === "pending" && (
+          {(visitor.approvalStatus || '').toLowerCase() === "pending" && (
             <>
               <button 
                 onClick={() => { onApprove(visitor.id); onClose(); }} 
@@ -171,7 +200,7 @@ export default function VisitorDetailModal({ visitor, onClose, onCheckIn, onChec
           )}
 
           {/* Check-in Actions */}
-          {visitor.status === "pending" && visitor.approvalStatus === "approved" && (
+          {(visitor.status || '').toLowerCase() === "pending" && (visitor.approvalStatus || '').toLowerCase() === "approved" && (
             <button 
               onClick={() => { onCheckIn(visitor.id); onClose(); }} 
               className="btn btn-primary"
@@ -182,7 +211,7 @@ export default function VisitorDetailModal({ visitor, onClose, onCheckIn, onChec
           )}
 
           {/* Check-out Actions */}
-          {visitor.status === "checked-in" && (
+          {(visitor.status || '').toLowerCase().replace(/_/g, '-') === "checked-in" && (
             <button 
               onClick={() => { onCheckOut(visitor.id); onClose(); }} 
               className="btn btn-secondary"

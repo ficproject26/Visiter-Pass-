@@ -458,34 +458,34 @@ export default function AdminDashboard({ visitors: propVisitors, onNavigate: ext
                           </td>
                           <td>
                             <span style={{
-                              background: v.status === "checked-in" ? "#dcfce7" : v.status === "checked-out" ? "#f1f5f9" : "#fff1f2",
-                              color: v.status === "checked-in" ? "#15803d" : v.status === "checked-out" ? "#475569" : "#be123c",
+                              background: (v.status || '').toLowerCase().replace(/_/g, '-') === "checked-in" ? "#dcfce7" : (v.status || '').toLowerCase().replace(/_/g, '-') === "checked-out" ? "#f1f5f9" : "#fff1f2",
+                              color: (v.status || '').toLowerCase().replace(/_/g, '-') === "checked-in" ? "#15803d" : (v.status || '').toLowerCase().replace(/_/g, '-') === "checked-out" ? "#475569" : "#be123c",
                               borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700, whiteSpace: "nowrap"
                             }}>
-                              {v.status === "checked-in" ? "Checked In" : v.status === "checked-out" ? "Checked Out" : "Pending"}
+                              {(v.status || '').toLowerCase().replace(/_/g, '-') === "checked-in" ? "Checked In" : (v.status || '').toLowerCase().replace(/_/g, '-') === "checked-out" ? "Checked Out" : "Pending"}
                             </span>
                           </td>
                           <td>
                             <span style={{
-                              background: v.approvalStatus === "approved" ? "#f0fdfa" : v.approvalStatus === "rejected" ? "#fef2f2" : "#fff1f2",
-                              color: v.approvalStatus === "approved" ? "#0f766e" : v.approvalStatus === "rejected" ? "#991b1b" : "#be123c",
+                              background: (v.approvalStatus || '').toLowerCase() === "approved" ? "#f0fdfa" : (v.approvalStatus || '').toLowerCase() === "rejected" ? "#fef2f2" : "#fff1f2",
+                              color: (v.approvalStatus || '').toLowerCase() === "approved" ? "#0f766e" : (v.approvalStatus || '').toLowerCase() === "rejected" ? "#991b1b" : "#be123c",
                               borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700, whiteSpace: "nowrap"
                             }}>
-                              {v.approvalStatus.toUpperCase()}
+                              {(v.approvalStatus || '').toUpperCase()}
                             </span>
                           </td>
                           <td onClick={e => e.stopPropagation()}>
                             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                              {v.approvalStatus === "pending" && (
+                              {(v.approvalStatus || '').toLowerCase() === "pending" && (
                                 <>
                                   <button onClick={() => handleApprove(v.id)} className="btn btn-success" style={{ padding: "4px 8px", fontSize: 11, borderRadius: 6 }}>Approve</button>
                                   <button onClick={() => handleReject(v.id)} className="btn btn-danger" style={{ padding: "4px 8px", fontSize: 11, borderRadius: 6 }}>Reject</button>
                                 </>
                               )}
-                              {v.status === "pending" && v.approvalStatus === "approved" && (
+                              {(v.status || '').toLowerCase() === "pending" && (v.approvalStatus || '').toLowerCase() === "approved" && (
                                 <button onClick={() => handleCheckIn(v.id)} className="btn btn-primary" style={{ padding: "4px 8px", fontSize: 11, borderRadius: 6, background: "#16a34a" }}>Check In</button>
                               )}
-                              {v.status === "checked-in" && (
+                              {(v.status || '').toLowerCase().replace(/_/g, '-') === "checked-in" && (
                                 <button onClick={() => handleCheckOut(v.id)} className="btn btn-secondary" style={{ padding: "4px 8px", fontSize: 11, borderRadius: 6, border: "1.5px solid #cbd5e1" }}>Check Out</button>
                               )}
                               <button onClick={() => setSelectedVisitor(v)} className="btn btn-secondary" style={{ padding: "4px 8px", fontSize: 11, borderRadius: 6, background: "#f8fafc" }}>Details</button>

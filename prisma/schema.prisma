@@ -85,6 +85,9 @@ model Visitor {
 
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+  arrivedAtGate   Boolean?  @default(false)
+
+  @@index([createdAt])
 }
 
 enum VisitorStatus {
