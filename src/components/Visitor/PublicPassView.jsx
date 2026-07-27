@@ -15,13 +15,38 @@ export default function PublicPassView() {
   useEffect(() => {
     const fetchVisitor = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/api/visitors`);
-        if (!res.ok) throw new Error("Server error");
-        const all = await res.json();
-        const found = all.find(v => v.id?.toLowerCase() === id?.toLowerCase());
-        if (found) setVisitor(found);
-        else setError("No visitor pass found for this ID.");
-      } catch {
+        if (!id) return;
+        
+        // 1. Direct single visitor lookup via API (instant & exact match)
+        const res = await fetch(`${API_BASE_URL}/api/visitors/${id}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && !data.error) {
+            setVisitor(data);
+            setLoading(false);
+            return;
+          }
+        }
+
+        // 2. Fallback search in full visitors array
+        const allRes = await fetch(`${API_BASE_URL}/api/visitors`);
+        if (allRes.ok) {
+          const all = await allRes.json();
+          const cleanId = String(id).toUpperCase().replace(/-/g, "");
+          const found = all.find(v => {
+            const vId1 = String(v.id || "").toUpperCase().replace(/-/g, "");
+            const vId2 = String(v.visitorId || "").toUpperCase().replace(/-/g, "");
+            return v.id === id || v.visitorId === id || vId1 === cleanId || vId2 === cleanId;
+          });
+          if (found) {
+            setVisitor(found);
+            setLoading(false);
+            return;
+          }
+        }
+        setError("No visitor pass found for this ID.");
+      } catch (err) {
+        console.error("Public pass fetch error:", err);
         setError("Unable to connect to server. Please try again.");
       } finally {
         setLoading(false);
@@ -30,8 +55,8 @@ export default function PublicPassView() {
     fetchVisitor();
   }, [id]);
 
-  const approvalStatus = visitor?.approvalStatus?.toUpperCase();
-  const visitorStatus = visitor?.status?.toUpperCase();
+  const approvalStatus = (visitor?.approvalStatus || 'APPROVED').toUpperCase();
+  const visitorStatus = (visitor?.status || 'PENDING').toUpperCase();
 
   const statusMeta = {
     CHECKED_IN:  { label: "CHECKED IN",      dot: "#22c55e", bg: "#f0fdf4", text: "#15803d", border: "#bbf7d0" },
