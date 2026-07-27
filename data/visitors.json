@@ -19,11 +19,11 @@
     "branch": "Bangalore",
     "visitDate": "2026-07-28",
     "checkInTime": "16:51",
-    "checkOutTime": null,
+    "checkOutTime": "17:00",
     "vehicleNumber": null,
     "companyName": "IT",
     "positionApplied": null,
-    "status": "PENDING",
+    "status": "CHECKED_OUT",
     "approvalStatus": "APPROVED",
     "createdAt": "2026-07-27T06:20:24.735Z"
   },
