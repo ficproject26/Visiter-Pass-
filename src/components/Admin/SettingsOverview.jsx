@@ -1,12 +1,13 @@
 "use client";
 import React, { useState } from 'react';
-import {  motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { staggerContainer, fadeUpBounce } from '../../utils/animations';
 import { useTheme } from '../../context/ThemeContext';
+import { useAuth } from '../../context/AuthContext';
 import {
   Building, Palette, Palette as ThemeIcon, ShieldAlert, Mail, Bell,
-  ChevronRight, CheckCircle2, XCircle
-, ArrowRight } from 'lucide-react';
+  Key, ArrowRight, Loader2, CheckCircle2, AlertCircle
+} from 'lucide-react';
 
 const sections = [
   {
@@ -16,10 +17,6 @@ const sections = [
     icon: Building,
     accentColor: '#3b82f6',
     stats: [{ label: 'Details', value: '100%' }, { label: 'Locations', value: 4 }],
-    items: [
-      { name: 'ForgeIndia HQ', detail: 'Primary Location', status: 'active' },
-      { name: 'Billing Info', detail: 'Verified', status: 'active' },
-    ],
   },
   {
     id: 'branding_logo',
@@ -28,10 +25,6 @@ const sections = [
     icon: Palette,
     accentColor: '#8b5cf6',
     stats: [{ label: 'Assets', value: 12 }, { label: 'Guidelines', value: 1 }],
-    items: [
-      { name: 'Primary Logo', detail: 'Uploaded', status: 'active' },
-      { name: 'Email Header', detail: 'Configured', status: 'active' },
-    ],
   },
   {
     id: 'theme_settings',
@@ -40,10 +33,6 @@ const sections = [
     icon: ThemeIcon,
     accentColor: '#10b981',
     stats: [{ label: 'Active Theme', value: 'Dark' }, { label: 'Palettes', value: 3 }],
-    items: [
-      { name: 'Dashboard UI', detail: 'Dark Mode Enabled', status: 'active' },
-      { name: 'Reception Kiosk', detail: 'Light Mode Default', status: 'active' },
-    ],
   },
   {
     id: 'security_settings',
@@ -52,39 +41,51 @@ const sections = [
     icon: ShieldAlert,
     accentColor: '#ef4444',
     stats: [{ label: '2FA', value: 'Enforced' }, { label: 'Policies', value: 5 }],
-    items: [
-      { name: 'Two-Factor Authentication', detail: 'Required for Admins', status: 'active' },
-      { name: 'Session Timeout', detail: '30 Minutes', status: 'active' },
-    ],
-  },
-  {
-    id: 'email_templates',
-    title: 'Email Templates',
-    description: 'Design and edit HTML email templates for all system communications.',
-    icon: Mail,
-    accentColor: '#f59e0b',
-    stats: [{ label: 'Templates', value: 18 }, { label: 'Customized', value: 6 }],
-    items: [
-      { name: 'Welcome Email', detail: 'Updated yesterday', status: 'active' },
-      { name: 'Pass QR Email', detail: 'Default layout', status: 'active' },
-    ],
-  },
-  {
-    id: 'notification_templates',
-    title: 'Notification Templates',
-    description: 'Configure SMS and push notification text content and variables.',
-    icon: Bell,
-    accentColor: '#0ea5e9',
-    stats: [{ label: 'SMS', value: 8 }, { label: 'Push', value: 12 }],
-    items: [
-      { name: 'Host Alert SMS', detail: '140 chars max', status: 'active' },
-      { name: 'Visitor Checkout Push', detail: 'Configured', status: 'active' },
-    ],
   },
 ];
 
 export default function SettingsOverview({ setActiveTab }) {
   const { isDark } = useTheme();
+  const { user } = useAuth();
+
+  const [email, setEmail] = useState(user?.email || 'superadmin@visitoros.com');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(null);
+  const [error, setError] = useState(null);
+
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage(null);
+    setError(null);
+
+    try {
+      const res = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          currentPassword,
+          newPassword
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setMessage(data.message || 'Password changed successfully!');
+        setCurrentPassword('');
+        setNewPassword('');
+      } else {
+        setError(data.error || 'Failed to update password');
+      }
+    } catch (err) {
+      setError('Network error: Could not reach backend server.');
+    } finally {
+      setLoading(false);
+    }
+  };
   
   const glass = {
     background: isDark ? 'rgba(30,41,59,0.7)' : '#ffffff',
@@ -100,14 +101,114 @@ export default function SettingsOverview({ setActiveTab }) {
 
       <motion.div variants={fadeUpBounce}>
         <h2 style={{ margin: 0, fontSize: 26, fontWeight: 800, color: isDark ? '#f8fafc' : '#0f172a' }}>
-          Settings
+          Settings & Security
         </h2>
         <p style={{ margin: '6px 0 0', fontSize: 14, color: isDark ? '#94a3b8' : '#64748b' }}>
-          Configure global preferences, security policies, branding, and system templates.
+          Change account passwords, configure global security policies, branding, and system preferences.
         </p>
       </motion.div>
 
-      
+      {/* Change Password Card */}
+      <motion.div variants={fadeUpBounce} style={{ ...glass, padding: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
+          <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(79, 70, 229, 0.1)', color: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Key size={22} strokeWidth={2.5} />
+          </div>
+          <div>
+            <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: isDark ? '#f8fafc' : '#0f172a' }}>
+              Change Admin / Account Password
+            </h3>
+            <p style={{ margin: '2px 0 0', fontSize: 13, color: isDark ? '#94a3b8' : '#64748b' }}>
+              Update credentials for <strong>{email}</strong> directly in the database.
+            </p>
+          </div>
+        </div>
+
+        <form onSubmit={handlePasswordSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, alignItems: 'end' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: isDark ? '#cbd5e1' : '#475569', marginBottom: 6 }}>
+              Target Email Address
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="e.g. superadmin@visitoros.com"
+              required
+              style={{
+                width: '100%',
+                padding: '10px 14px',
+                borderRadius: 10,
+                border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #cbd5e1',
+                background: isDark ? '#0f172a' : '#f8fafc',
+                color: isDark ? '#f8fafc' : '#0f172a',
+                fontSize: 14
+              }}
+            />
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: isDark ? '#cbd5e1' : '#475569', marginBottom: 6 }}>
+              New Password
+            </label>
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Enter new password"
+              required
+              style={{
+                width: '100%',
+                padding: '10px 14px',
+                borderRadius: 10,
+                border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #cbd5e1',
+                background: isDark ? '#0f172a' : '#f8fafc',
+                color: isDark ? '#f8fafc' : '#0f172a',
+                fontSize: 14
+              }}
+            />
+          </div>
+
+          <div>
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                width: '100%',
+                padding: '11px 20px',
+                borderRadius: 10,
+                background: 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)',
+                color: 'white',
+                fontWeight: 700,
+                fontSize: 14,
+                border: 0,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)'
+              }}
+            >
+              {loading ? <Loader2 className="animate-spin" size={18} /> : <span>Update Password</span>}
+            </button>
+          </div>
+        </form>
+
+        {message && (
+          <div style={{ marginTop: 16, padding: '10px 14px', borderRadius: 10, background: '#dcfce7', color: '#15803d', border: '1px solid #86efac', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <CheckCircle2 size={18} /> {message}
+          </div>
+        )}
+
+        {error && (
+          <div style={{ marginTop: 16, padding: '10px 14px', borderRadius: 10, background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <AlertCircle size={18} /> {error}
+          </div>
+        )}
+      </motion.div>
+
+      {/* Grid of Sections */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 24 }}>
         {sections.map((section) => {
           const Icon = section.icon;
@@ -127,12 +228,9 @@ export default function SettingsOverview({ setActiveTab }) {
                 position: 'relative'
               }}
             >
-              {/* Top Accent Line */}
               <div style={{ height: 4, width: '100%', background: section.accentColor }} />
               
               <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                
-                {/* Header: Icon + Title */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
                   <div style={{
                     width: 52, height: 52, borderRadius: 14, flexShrink: 0,
@@ -147,7 +245,6 @@ export default function SettingsOverview({ setActiveTab }) {
                   </h3>
                 </div>
 
-                {/* Description */}
                 <p style={{ 
                   margin: 0, fontSize: 14, color: isDark ? '#94a3b8' : '#64748b', 
                   lineHeight: 1.5, flexGrow: 1 
@@ -155,7 +252,6 @@ export default function SettingsOverview({ setActiveTab }) {
                   {section.description}
                 </p>
 
-                {/* Bottom Stats & Arrow */}
                 <div style={{ 
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
                   marginTop: 24, paddingTop: 16, 
