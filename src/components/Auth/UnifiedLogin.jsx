@@ -1,11 +1,12 @@
 "use client";
-import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
-import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Eye, EyeOff, Loader2, ShieldCheck, ShieldAlert, Users, Key } from "lucide-react";
 
-export default function UnifiedLogin() {
+export default function UnifiedLogin({ initialRole = 'admin' }) {
+  const [roleMode, setRoleMode] = useState(initialRole); // admin, security, staff, visitor
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -14,6 +15,17 @@ export default function UnifiedLogin() {
 
   const { login } = useAuth();
   const router = useRouter();
+
+  // Set default placeholder email based on selected role mode
+  useEffect(() => {
+    if (roleMode === 'admin' && !email) {
+      setEmail("superadmin@visitoros.com");
+    } else if (roleMode === 'security' && !email) {
+      setEmail("kathiresan@gmail.com");
+    } else if (roleMode === 'staff' && !email) {
+      setEmail("dhanushiyasri192004@gmail.com");
+    }
+  }, [roleMode]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -25,59 +37,152 @@ export default function UnifiedLogin() {
         router.push("/admin-dashboard");
       } else if (user.role === 'security' || user.role === 'gate' || user.role === 'guard') {
         router.push("/security-dashboard");
-      } else if (user.role === 'hr') {
+      } else if (user.role === 'hr' || user.role === 'employee' || user.role === 'staff') {
         router.push("/staff-dashboard");
       } else if (user.role === 'visitor') {
         router.push("/visitor-dashboard");
       } else {
-        router.push("/staff-dashboard");
+        router.push("/admin-dashboard");
       }
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Invalid email or password");
     } finally {
       setLoading(false);
     }
   };
 
+  const portalMeta = {
+    admin: {
+      title: "Super Admin Portal",
+      subtitle: "Sign in to manage branches, employees, and organization settings",
+      badgeBg: "rgba(79, 70, 229, 0.1)",
+      badgeColor: "#4f46e5",
+      icon: ShieldCheck,
+      placeholder: "superadmin@visitoros.com"
+    },
+    security: {
+      title: "Security Desk Portal",
+      subtitle: "Sign in for gate verification, visitor check-in, and scanner logs",
+      badgeBg: "rgba(16, 185, 129, 0.1)",
+      badgeColor: "#10b981",
+      icon: ShieldAlert,
+      placeholder: "security@visitoros.com"
+    },
+    staff: {
+      title: "Staff & Employee Portal",
+      subtitle: "Sign in to view meeting requests and host appointments",
+      badgeBg: "rgba(245, 158, 11, 0.1)",
+      badgeColor: "#f59e0b",
+      icon: Users,
+      placeholder: "staff@visitoros.com"
+    }
+  };
+
+  const meta = portalMeta[roleMode] || portalMeta.admin;
+  const ModeIcon = meta.icon;
+
   return (
     <div
       className="min-h-screen flex flex-col font-sans relative overflow-hidden"
       style={{
-        background: 'linear-gradient(135deg, #FFFFFF 0%, #F3F4F6 100%)',
+        background: 'radial-gradient(ellipse at 50% 30%, #1e1b4b 0%, #0f172a 60%, #020617 100%)',
       }}
     >
       {/* Centered Login Card */}
       <main className="relative z-10 flex-1 flex items-center justify-center p-[16px]">
-        <div className="auth-card">
+        <div className="auth-card" style={{ maxWidth: 440, width: "100%", borderRadius: 24, padding: "2.25rem 2rem", background: "white", boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)" }}>
+          
+          {/* Portal Switcher Tabs */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, background: "#f1f5f9", padding: 4, borderRadius: 14, marginBottom: 24 }}>
+            <button
+              type="button"
+              onClick={() => { setRoleMode('admin'); setError(""); }}
+              style={{
+                padding: "8px 10px",
+                borderRadius: 10,
+                fontSize: 12,
+                fontWeight: 800,
+                border: 0,
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                background: roleMode === 'admin' ? "white" : "transparent",
+                color: roleMode === 'admin' ? "#4f46e5" : "#64748b",
+                boxShadow: roleMode === 'admin' ? "0 2px 8px rgba(0,0,0,0.08)" : "none"
+              }}
+            >
+              👑 Admin
+            </button>
+            <button
+              type="button"
+              onClick={() => { setRoleMode('security'); setError(""); }}
+              style={{
+                padding: "8px 10px",
+                borderRadius: 10,
+                fontSize: 12,
+                fontWeight: 800,
+                border: 0,
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                background: roleMode === 'security' ? "white" : "transparent",
+                color: roleMode === 'security' ? "#10b981" : "#64748b",
+                boxShadow: roleMode === 'security' ? "0 2px 8px rgba(0,0,0,0.08)" : "none"
+              }}
+            >
+              🛡️ Security
+            </button>
+            <button
+              type="button"
+              onClick={() => { setRoleMode('staff'); setError(""); }}
+              style={{
+                padding: "8px 10px",
+                borderRadius: 10,
+                fontSize: 12,
+                fontWeight: 800,
+                border: 0,
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                background: roleMode === 'staff' ? "white" : "transparent",
+                color: roleMode === 'staff' ? "#f59e0b" : "#64748b",
+                boxShadow: roleMode === 'staff' ? "0 2px 8px rgba(0,0,0,0.08)" : "none"
+              }}
+            >
+              👥 Staff
+            </button>
+          </div>
+
           {/* Header text inside card */}
-          <div style={{ textAlign: "center", marginBottom: 24 }}>
-            <h2 style={{ fontSize: 24, fontWeight: 800, color: "#1e293b", margin: 0 }}>Corporate Login</h2>
-            <p style={{ fontSize: 13, color: "#64748b", marginTop: 4 }}>Enter credentials to access your dashboard</p>
+          <div style={{ textAlign: "center", marginBottom: 20 }}>
+            <div style={{ width: 52, height: 52, borderRadius: 16, background: meta.badgeBg, color: meta.badgeColor, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}>
+              <ModeIcon size={26} strokeWidth={2.5} />
+            </div>
+            <h2 style={{ fontSize: 22, fontWeight: 800, color: "#0f172a", margin: 0 }}>{meta.title}</h2>
+            <p style={{ fontSize: 13, color: "#64748b", marginTop: 6, lineHeight: 1.4 }}>{meta.subtitle}</p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="auth-form">
+          <form onSubmit={handleSubmit} className="auth-form" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {/* Corporate Email */}
             <div className="form-group">
-              <label htmlFor="email">
-                Corporate Email
+              <label htmlFor="email" style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#475569", marginBottom: 6 }}>
+                Email Address
               </label>
               <input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => { setEmail(e.target.value); setError(""); }}
-                placeholder="architect@firm.com"
+                placeholder={meta.placeholder}
                 required
+                style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid #cbd5e1", fontSize: 14, outline: "none" }}
               />
             </div>
 
             {/* Password */}
-            <div className="form-group mt-16">
-              <label htmlFor="password">
+            <div className="form-group">
+              <label htmlFor="password" style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#475569", marginBottom: 6 }}>
                 Password
               </label>
-              <div className="password-wrapper">
+              <div style={{ position: "relative" }}>
                 <input
                   id="password"
                   type={showPassword ? "text" : "password"}
@@ -85,50 +190,59 @@ export default function UnifiedLogin() {
                   onChange={(e) => { setPassword(e.target.value); setError(""); }}
                   placeholder="••••••••••••"
                   required
+                  style={{ width: "100%", padding: "10px 40px 10px 14px", borderRadius: 10, border: "1px solid #cbd5e1", fontSize: 14, outline: "none" }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: 0, color: "#94a3b8", cursor: "pointer" }}
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
 
             {error && (
-              <span className="text-red-700 text-[11px] font-bold block text-left bg-white/80 px-3 py-1.5 rounded-lg border border-red-200 mt-[16px]">
+              <div style={{ padding: "10px 12px", borderRadius: 10, background: "#fee2e2", color: "#dc2626", border: "1px solid #fca5a5", fontSize: 12, fontWeight: 700 }}>
                 ⚠️ {error}
-              </span>
+              </div>
             )}
-
-            {/* Checkbox Agreement */}
-            <div className="terms">
-              <input
-                type="checkbox"
-                id="remember"
-                required
-              />
-              <label htmlFor="remember">
-                I agree to the <a href="#" className="text-blue-600 hover:underline">Terms of Service</a> & <a href="#" className="text-blue-600 hover:underline">Privacy Policy</a>
-              </label>
-            </div>
 
             {/* CTA Button */}
             <button
               type="submit"
               disabled={loading}
-              className="submit-btn"
+              style={{
+                width: "100%",
+                padding: "12px",
+                borderRadius: 12,
+                background: meta.badgeColor,
+                color: "white",
+                fontWeight: 800,
+                fontSize: 14,
+                border: 0,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                marginTop: 8,
+                boxShadow: `0 4px 14px ${meta.badgeColor}50`
+              }}
             >
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
-                <span className="flex items-center gap-1.5 font-bold">
-                  Login <span className="text-lg leading-none font-bold">→</span>
-                </span>
+                <span>Sign In to {roleMode === 'admin' ? 'Admin' : roleMode === 'security' ? 'Security' : 'Staff'} →</span>
               )}
             </button>
           </form>
+
+          {/* Quick Info footer */}
+          <div style={{ marginTop: 24, paddingTop: 16, borderTop: "1px solid #f1f5f9", textAlign: "center", fontSize: 12, color: "#94a3b8" }}>
+            Visitor Management Portal · Forge India Connect
+          </div>
+
         </div>
       </main>
     </div>

@@ -80,22 +80,6 @@ export default function LandingPage() {
           >
             Check-In Portal
           </button>
-          <button
-            onClick={() => onNavigate("login")}
-            className="btn"
-            style={{
-              padding: "8px 16px",
-              backgroundColor: "#FFC72C",
-              color: "#1E3A8A",
-              fontWeight: 800,
-              boxShadow: "0 4px 14px rgba(255, 199, 44, 0.3)",
-              transition: "all 0.2s ease"
-            }}
-            onMouseEnter={e => { e.currentTarget.style.backgroundColor = "#ffd043"; e.currentTarget.style.transform = "translateY(-2px)"; }}
-            onMouseLeave={e => { e.currentTarget.style.backgroundColor = "#FFC72C"; e.currentTarget.style.transform = "translateY(0)"; }}
-          >
-            Login
-          </button>
         </div>
       </nav>
 
