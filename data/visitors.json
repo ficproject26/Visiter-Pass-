@@ -18,12 +18,12 @@
     "department": "HR",
     "branch": "Bangalore",
     "visitDate": "2026-07-28",
-    "checkInTime": "12:27",
+    "checkInTime": "10:57",
     "checkOutTime": null,
     "vehicleNumber": null,
     "companyName": null,
     "positionApplied": null,
-    "status": "PENDING",
+    "status": "CHECKED_IN",
     "approvalStatus": "APPROVED",
     "createdAt": "2026-07-27T04:57:21.477Z"
   },
@@ -53,7 +53,8 @@
     "positionApplied": null,
     "status": "PENDING",
     "approvalStatus": "PENDING",
-    "createdAt": "2026-07-25T10:11:06.776Z"
+    "createdAt": "2026-07-25T10:11:06.776Z",
+    "arrivedAtGate": true
   },
   {
     "id": "V154",

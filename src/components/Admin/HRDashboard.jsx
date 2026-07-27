@@ -1,16 +1,16 @@
 "use client";
 import React, { useState } from "react";
-import { MOCK_VISITORS } from "../../constants/visitorConstants";
 import BrandLogo from "../UI/BrandLogo";
 import ThemeToggle from "../UI/ThemeToggle";
 import QRScannerSim from "./QRScannerSim";
 import { useTheme } from "../../context/ThemeContext";
+import { useData } from "../../context/DataContext";
 import { motion } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import { useRouter } from "next/navigation";
 import "../../styles/dashboard.css";
 
-export default function HRDashboard({ visitors = [], onUpdate, onNavigate: externalOnNavigate }) {
+export default function HRDashboard({ visitors: propVisitors = [], onUpdate, onNavigate: externalOnNavigate }) {
   const router = useRouter();
   const onNavigate = externalOnNavigate || ((target) => {
     if (target === "landing") router.push("/");
@@ -19,8 +19,17 @@ export default function HRDashboard({ visitors = [], onUpdate, onNavigate: exter
 
   const { isDark } = useTheme();
   const { user } = useAuth();
-  // Filter only Interview Candidates for HR
-  const candidates = MOCK_VISITORS.filter(v => v.purpose === "Interview" || v.visitorType === "Interview Candidate");
+  const { visitors: contextVisitors } = useData();
+
+  // Combine live visitors from props or DataContext
+  const allVisitors = (propVisitors && propVisitors.length > 0) ? propVisitors : (contextVisitors || []);
+  
+  // Filter interview candidates for HR view
+  const candidates = allVisitors.filter(v => 
+    v.purpose === "Interview" || 
+    v.visitorType === "Interview Candidate" || 
+    Boolean(v.interviewDomain)
+  );
 
   const [activeTab, setActiveTab] = useState("candidates");
 
@@ -212,19 +221,26 @@ export default function HRDashboard({ visitors = [], onUpdate, onNavigate: exter
                         {c.checkInTime}
                       </td>
                       <td>
-                        <span
-                          style={{
-                            background: c.status === "checked-in" ? "#dcfce7" : "#fff1f2",
-                            color: c.status === "checked-in" ? "#15803d" : "#be123c",
-                            borderRadius: 20,
-                            padding: "3px 10px",
-                            fontSize: 11,
-                            fontWeight: 700,
-                            whiteSpace: "nowrap"
-                          }}
-                        >
-                          {c.status.toUpperCase()}
-                        </span>
+                        {(() => {
+                          const rawSt = (c.status || "PENDING").toUpperCase();
+                          const isCheckedIn = rawSt === "CHECKED_IN" || rawSt === "CHECKED-IN";
+                          const isCheckedOut = rawSt === "CHECKED_OUT" || rawSt === "CHECKED-OUT";
+                          return (
+                            <span
+                              style={{
+                                background: isCheckedIn ? "#dcfce7" : isCheckedOut ? "#f1f5f9" : "#fff1f2",
+                                color: isCheckedIn ? "#15803d" : isCheckedOut ? "#475569" : "#be123c",
+                                borderRadius: 20,
+                                padding: "3px 10px",
+                                fontSize: 11,
+                                fontWeight: 700,
+                                whiteSpace: "nowrap"
+                              }}
+                            >
+                              {rawSt.replace("_", "-")}
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td>
                         {c.approvalStatus === 'pending' ? (

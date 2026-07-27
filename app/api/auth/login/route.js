@@ -12,6 +12,8 @@ export async function POST(req) {
       return NextResponse.json({ email, role: 'subadmin', branch: 'Bangalore', name: 'Bangalore Admin' });
     } else if (email === 'subadmin_chennai@visitoros.com' && password === 'sub123') {
       return NextResponse.json({ email, role: 'subadmin', branch: 'Chennai', name: 'Chennai Admin' });
+    } else if ((email === 'security@visitoros.com' || email === 'security@gmail.com') && (password === 'security123' || password === 'staff123')) {
+      return NextResponse.json({ email, role: 'security', name: 'Security Guard' });
     } else if (email === 'staff@visitoros.com' && password === 'staff123') {
       return NextResponse.json({ email, role: 'hr', name: 'Staff Member' });
     } else if (email === 'visitor@visitoros.com' && password === 'visitor123') {
@@ -32,6 +34,8 @@ export async function POST(req) {
         appRole = 'subadmin';
       } else if (deptLower === 'admin' || roleLower.includes('administrator') || roleLower === 'admin') {
         appRole = 'admin';
+      } else if (deptLower.includes('security') || roleLower.includes('security') || roleLower.includes('gate') || roleLower.includes('guard')) {
+        appRole = 'security';
       } else if (deptLower === 'hr' || roleLower.includes('hr') || roleLower.includes('recruiter')) {
         appRole = 'hr';
       }

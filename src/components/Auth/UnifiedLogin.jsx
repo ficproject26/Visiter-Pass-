@@ -23,12 +23,14 @@ export default function UnifiedLogin() {
       const user = await login(email, password);
       if (user.role === 'admin' || user.role === 'subadmin') {
         router.push("/admin-dashboard");
+      } else if (user.role === 'security' || user.role === 'gate' || user.role === 'guard') {
+        router.push("/security-dashboard");
       } else if (user.role === 'hr') {
         router.push("/staff-dashboard");
       } else if (user.role === 'visitor') {
         router.push("/visitor-dashboard");
       } else {
-        setError("Role-based access denied or invalid role dashboard.");
+        router.push("/staff-dashboard");
       }
     } catch (err) {
       setError(err.message);

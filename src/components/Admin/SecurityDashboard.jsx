@@ -17,6 +17,7 @@ export default function SecurityDashboard({ onNavigate: externalOnNavigate }) {
   const { isDark } = useTheme();
   const { visitors = [], refreshData } = useData();
   const [activeTab, setActiveTab] = useState("scanner");
+  const [selectedVisitorId, setSelectedVisitorId] = useState(null);
 
   // Auto-refresh gate data every 5 seconds so security sees live host approval changes
   React.useEffect(() => {
@@ -25,6 +26,20 @@ export default function SecurityDashboard({ onNavigate: externalOnNavigate }) {
     }, 5000);
     return () => clearInterval(interval);
   }, [refreshData]);
+
+  const handleOpenPassCard = (vId) => {
+    setSelectedVisitorId(vId);
+    setActiveTab("scanner");
+  };
+
+  const handleQuickCheckOut = async (vId, e) => {
+    if (e) e.stopPropagation();
+    const timeNow = new Date().toTimeString().slice(0, 5);
+    await handleUpdateVisitor(vId, {
+      status: "CHECKED_OUT",
+      checkOutTime: timeNow
+    });
+  };
 
   const handleUpdateVisitor = async (id, updatePayload) => {
     try {
@@ -52,125 +67,242 @@ export default function SecurityDashboard({ onNavigate: externalOnNavigate }) {
   const checkedOutCount = visitors.filter(v => (v.status || "").toUpperCase() === 'CHECKED-OUT' || (v.status || "").toUpperCase() === 'CHECKED_OUT').length;
 
   return (
-    <div className={`min-h-screen flex ${isDark ? 'bg-slate-900 text-slate-100' : 'bg-slate-50 text-slate-900'} font-sans`}>
-      {/* Sidebar */}
-      <aside className="w-64 bg-slate-950 text-slate-300 flex flex-col p-6 sticky top-0 h-screen shadow-2xl z-10 border-r border-slate-800">
-        <BrandLogo onNavigate={onNavigate} variant="sidebar" isDark={true} />
-        <div className="mt-8 flex flex-col gap-2 flex-1">
-          <button 
-            onClick={() => setActiveTab("scanner")}
-            className={`flex items-center gap-3 p-3 rounded-xl transition font-semibold ${activeTab === 'scanner' ? 'bg-blue-600 text-white' : 'hover:bg-slate-800'}`}
+    <div style={{ width: "100%", height: "100vh", background: isDark ? "#0B1220" : "#F8FAFC", display: "flex", fontFamily: "var(--font-primary)", overflow: "hidden" }}>
+      {/* Sidebar Navigation */}
+      <aside
+        style={{
+          width: 250,
+          minWidth: 250,
+          flexShrink: 0,
+          background: "linear-gradient(180deg, #0f172a 0%, #1e293b 100%)",
+          padding: "2rem 1rem",
+          display: "flex",
+          flexDirection: "column",
+          gap: 24,
+          height: "100vh",
+          borderRight: "1px solid rgba(255,255,255,0.05)"
+        }}
+      >
+        <div style={{ padding: "0 0.75rem", marginBottom: 8 }}>
+          <BrandLogo onNavigate={onNavigate} variant="sidebar" isDark={true} />
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {[
+            { key: "scanner", label: "Gate Pass Verification", icon: "📱" },
+            { key: "logs", label: "Entry/Exit Logs", icon: "📋" }
+          ].map(tab => {
+            const isActive = activeTab === tab.key;
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "12px 16px",
+                  borderRadius: 12,
+                  border: 0,
+                  cursor: "pointer",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  textAlign: "left",
+                  transition: "all 0.2s",
+                  background: isActive ? "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)" : "transparent",
+                  color: isActive ? "white" : "#94a3b8"
+                }}
+              >
+                <span style={{ fontSize: 18 }}>{tab.icon}</span>
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <div style={{ marginTop: "auto" }}>
+          <button
+            onClick={() => onNavigate("landing")}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "10px 16px",
+              borderRadius: 12,
+              border: 0,
+              background: "transparent",
+              color: "#64748b",
+              cursor: "pointer",
+              fontSize: 13,
+              fontWeight: 600,
+              width: "100%"
+            }}
           >
-            <span>📱</span> Gate Pass Verification
-          </button>
-          <button 
-            onClick={() => setActiveTab("logs")}
-            className={`flex items-center gap-3 p-3 rounded-xl transition font-semibold ${activeTab === 'logs' ? 'bg-blue-600 text-white' : 'hover:bg-slate-800'}`}
-          >
-            <span>📋</span> Entry/Exit Logs
+            🚪 Logout Terminal
           </button>
         </div>
-        <button onClick={() => onNavigate("landing")} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 transition font-semibold">
-          <span>🚪</span> Logout
-        </button>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 p-8 overflow-y-auto">
-        <div className="flex justify-between items-center mb-8">
+      {/* Main Workspace content */}
+      <main style={{ padding: "clamp(1.25rem, 3vw, 2.5rem) clamp(1rem, 4vw, 3rem)", flex: 1, minWidth: 0, height: "100vh", overflowY: "auto", overflowX: "hidden" }}>
+        {/* Header toolbar */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: 16 }}>
           <div>
-            <h1 className="text-3xl font-black tracking-tight">Security Gate Command Center</h1>
-            <p className="text-slate-500 font-medium">Verify Visitor Pass Codes (e.g. V129) & check Admin & Host Approval before allowing entry</p>
+            <h1 style={{ fontSize: "1.8rem", fontWeight: 800, color: isDark ? "#F8FAFC" : "#0F172A", letterSpacing: "-0.5px" }}>
+              Security Gate Command Center
+            </h1>
+            <p style={{ color: isDark ? "#94a3b8" : "#64748b", fontSize: 13, marginTop: 4 }}>
+              Verify Visitor Pass Codes (e.g. V129) & check Admin & Host Approval before allowing entry
+            </p>
           </div>
-          <div className="bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-4 py-2 rounded-lg font-bold flex items-center gap-2">
-            <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
+          <div style={{ background: "#ecfdf5", color: "#059669", border: "1px solid #a7f3d0", padding: "8px 16px", borderRadius: 10, fontWeight: 700, fontSize: 13, display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#10b981" }} />
             Gate Terminal Active
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        {/* Stats strip */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 16, marginBottom: "2.5rem" }}>
           {[
-            { label: "Active On Premises", val: checkedInCount, color: "text-green-500" },
-            { label: "Approved Entry (Awaiting Gate)", val: approvedCount, color: "text-blue-500" },
-            { label: "Pending Approval", val: pendingCount, color: "text-amber-500" },
-            { label: "Checked Out Today", val: checkedOutCount, color: "text-slate-400" }
-          ].map(s => (
-            <div key={s.label} className={`p-6 rounded-2xl shadow-sm border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wide">{s.label}</h3>
-              <p className={`text-4xl font-black mt-2 ${s.color}`}>{s.val}</p>
+            { label: "Active On Premises", val: checkedInCount, color: "#16a34a", subText: "Inside building" },
+            { label: "Approved Entry", val: approvedCount, color: "#2563eb", subText: "Awaiting at gate" },
+            { label: "Pending Approval", val: pendingCount, color: "#d97706", subText: "Awaiting action" },
+            { label: "Checked Out Today", val: checkedOutCount, color: "#64748b", subText: "Finished visits" }
+          ].map((card, index) => (
+            <div
+              key={index}
+              style={{
+                background: isDark ? "#111827" : "#FFFFFF",
+                borderRadius: 16,
+                padding: "1.25rem 1.5rem",
+                border: isDark ? "1px solid rgba(255,255,255,0.07)" : "1px solid rgba(15,23,42,0.1)",
+                boxShadow: "var(--shadow-sm)",
+                display: "flex",
+                flexDirection: "column",
+                gap: 4
+              }}
+            >
+              <span style={{ fontSize: 11, fontWeight: 700, color: isDark ? "#94a3b8" : "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>{card.label}</span>
+              <span style={{ fontSize: 32, fontWeight: 800, color: card.color }}>{card.val}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
+                <div style={{ width: 6, height: 6, borderRadius: "50%", background: card.color }} />
+                <span style={{ fontSize: 10, color: "#94a3b8" }}>{card.subText}</span>
+              </div>
             </div>
           ))}
         </div>
 
         {activeTab === "scanner" && (
-          <div className="max-w-4xl mx-auto">
-            <div className="mb-6">
-              <h2 className="text-xl font-bold">Gate Visitor Verification</h2>
-              <p className="text-slate-500 text-sm">Enter Visitor Pass Reference ID (e.g. <strong>V129</strong>) or scan QR code to check Admin & Host Approval.</p>
+          <div style={{ width: "100%" }}>
+            <div style={{ marginBottom: "1.5rem" }}>
+              <h2 style={{ fontSize: "1.25rem", fontWeight: 700, color: isDark ? "#F8FAFC" : "#0F172A" }}>Gate Visitor Verification</h2>
+              <p style={{ color: "#94a3b8", fontSize: 13, marginTop: 2 }}>Enter Visitor Pass Reference ID (e.g. <strong>V129</strong>) or scan QR code to check Admin & Host Approval.</p>
             </div>
-            <QRScannerSim visitors={visitors} onUpdate={handleUpdateVisitor} />
+            <QRScannerSim visitors={visitors} onUpdate={handleUpdateVisitor} initialVisitorId={selectedVisitorId} />
           </div>
         )}
 
         {activeTab === "logs" && (
-          <div className={`rounded-2xl shadow-sm border overflow-hidden ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
-            <table className="w-full text-left">
-              <thead className={`text-xs uppercase font-bold tracking-wider ${isDark ? 'bg-slate-900/50 text-slate-400' : 'bg-slate-50 text-slate-500'}`}>
+          <div className="table-container">
+            <table className="admin-table">
+              <thead>
                 <tr>
-                  <th className="p-4">Pass ID</th>
-                  <th className="p-4">Visitor Identity</th>
-                  <th className="p-4">Host / Purpose</th>
-                  <th className="p-4">Approval Status</th>
-                  <th className="p-4">Entry / Exit Log</th>
-                  <th className="p-4">Gate Status</th>
+                  <th>Pass ID</th>
+                  <th>Visitor Identity</th>
+                  <th>Host / Purpose</th>
+                  <th>Approval Status</th>
+                  <th>Entry / Exit Log</th>
+                  <th>Gate Status</th>
+                  <th>Quick Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+              <tbody>
                 {visitors.map(v => {
+                  const vId = v.id || v.visitorId;
                   const appStatus = (v.approvalStatus || v.status || "PENDING").toUpperCase();
                   const gateStat = (v.status || "PENDING").toUpperCase();
+                  const isCheckedIn = gateStat === 'CHECKED_IN' || gateStat === 'CHECKED-IN';
 
                   return (
-                    <tr key={v.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition">
-                      <td className="p-4 font-mono font-bold text-indigo-400">{v.id}</td>
-                      <td className="p-4">
-                        <div className="font-bold flex items-center gap-2">
-                          {v.photo ? (
-                            <img src={v.photo} alt={v.fullName} className="w-8 h-8 rounded-full object-cover border border-slate-600" />
-                          ) : (
-                            <div className="w-8 h-8 rounded-full bg-slate-300 dark:bg-slate-600 flex items-center justify-center text-xs font-bold">{v.fullName ? v.fullName[0] : "V"}</div>
-                          )}
-                          <div>
-                            <div>{v.fullName}</div>
-                            <div className="text-xs text-slate-500 font-normal">{v.phone}</div>
-                          </div>
-                        </div>
+                    <tr key={vId} style={{ cursor: "pointer" }} onClick={() => handleOpenPassCard(vId)} title="Click to open Pass Card in Gate Terminal">
+                      <td>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleOpenPassCard(vId); }}
+                          style={{
+                            background: "rgba(79, 70, 229, 0.1)",
+                            color: "#4f46e5",
+                            border: "1px solid rgba(79, 70, 229, 0.3)",
+                            borderRadius: 6,
+                            padding: "3px 8px",
+                            fontWeight: 800,
+                            fontFamily: "monospace",
+                            fontSize: 12,
+                            cursor: "pointer"
+                          }}
+                        >
+                          🔍 {vId}
+                        </button>
                       </td>
-                      <td className="p-4 text-sm">
-                        <div className="font-semibold text-slate-300">{v.personToMeet} ({v.department || "Host"})</div>
-                        <div className="text-xs text-slate-500">{v.purpose}</div>
+                      <td>
+                        <div style={{ fontWeight: 700, color: "#2563eb", fontSize: 13, textDecoration: "underline" }}>{v.fullName}</div>
+                        <div style={{ fontSize: 11, color: "#94a3b8" }}>{v.phone}</div>
                       </td>
-                      <td className="p-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                          appStatus === 'APPROVED' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' :
-                          appStatus === 'REJECTED' ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30' :
-                          'bg-amber-500/15 text-amber-400 border border-amber-500/30'
-                        }`}>
+                      <td style={{ fontSize: 13 }}>
+                        <div style={{ fontWeight: 600 }}>{v.personToMeet} ({v.department || "Host"})</div>
+                        <div style={{ fontSize: 11, color: "#94a3b8" }}>{v.purpose}</div>
+                      </td>
+                      <td>
+                        <span style={{
+                          background: appStatus === 'APPROVED' ? '#dcfce7' : appStatus === 'REJECTED' ? '#ffe4e6' : '#fef3c7',
+                          color: appStatus === 'APPROVED' ? '#15803d' : appStatus === 'REJECTED' ? '#be123c' : '#b45309',
+                          borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700
+                        }}>
                           {appStatus}
                         </span>
                       </td>
-                      <td className="p-4 text-sm text-slate-400">
+                      <td style={{ fontSize: 12, color: "#64748b" }}>
                         {v.checkInTime || "--:--"} / {v.checkOutTime || "--:--"}
                       </td>
-                      <td className="p-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                          gateStat === 'CHECKED_IN' || gateStat === 'CHECKED-IN' ? 'bg-green-500/20 text-green-400' :
-                          gateStat === 'CHECKED_OUT' || gateStat === 'CHECKED-OUT' ? 'bg-slate-700 text-slate-400' :
-                          'bg-amber-500/20 text-amber-400'
-                        }`}>
-                          {gateStat}
+                      <td>
+                        <span style={{
+                          background: isCheckedIn ? '#dcfce7' : '#f1f5f9',
+                          color: isCheckedIn ? '#15803d' : '#475569',
+                          borderRadius: 20, padding: "3px 10px", fontSize: 11, fontWeight: 700
+                        }}>
+                          {gateStat.replace("_", "-")}
                         </span>
+                      </td>
+                      <td>
+                        {isCheckedIn ? (
+                          <button
+                            onClick={(e) => handleQuickCheckOut(vId, e)}
+                            className="btn btn-secondary"
+                            style={{
+                              padding: "4px 10px",
+                              fontSize: 11,
+                              borderRadius: 8,
+                              fontWeight: 700,
+                              background: "#fee2e2",
+                              color: "#dc2626",
+                              border: "1px solid #fca5a5"
+                            }}
+                          >
+                            📤 Check Out
+                          </button>
+                        ) : (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleOpenPassCard(vId); }}
+                            className="btn btn-primary"
+                            style={{
+                              padding: "4px 10px",
+                              fontSize: 11,
+                              borderRadius: 8,
+                              fontWeight: 700
+                            }}
+                          >
+                            🔍 Open Pass
+                          </button>
+                        )}
                       </td>
                     </tr>
                   );

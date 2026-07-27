@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import QRCode from "../UI/QRCode";
 import { API_BASE_URL } from "../../config/api";
 
-export default function QRScannerSim({ visitors = [], onUpdate }) {
+export default function QRScannerSim({ visitors = [], onUpdate, initialVisitorId }) {
   const [selectedId, setSelectedId] = useState("");
   const [scannedVisitor, setScannedVisitor] = useState(null);
   const [manualCode, setManualCode] = useState("");
@@ -15,6 +15,13 @@ export default function QRScannerSim({ visitors = [], onUpdate }) {
       setToastMessage(null);
     }, 4000);
   };
+
+  // Load pass card if initialVisitorId is provided from table click
+  useEffect(() => {
+    if (initialVisitorId) {
+      loadVisitorById(initialVisitorId);
+    }
+  }, [initialVisitorId]);
 
   // Keep scannedVisitor in real-time sync when visitors prop updates
   useEffect(() => {
