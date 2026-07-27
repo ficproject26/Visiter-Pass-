@@ -487,9 +487,6 @@ export default function AdminDashboard({ visitors: propVisitors, onNavigate: ext
                               {v.checkInTime ? `${v.checkInTime}` : "—"}{v.checkOutTime ? ` to ${v.checkOutTime}` : ""}
                             </div>
                           </td>
-                              {v.checkInTime ? `${v.checkInTime}` : "—"}{v.checkOutTime ? ` to ${v.checkOutTime}` : ""}
-                            </div>
-                          </td>
                           <td>
                             <span style={{
                               background: (v.status || '').toLowerCase().replace(/_/g, '-') === "checked-in" ? "#dcfce7" : (v.status || '').toLowerCase().replace(/_/g, '-') === "checked-out" ? "#f1f5f9" : "#fff1f2",
