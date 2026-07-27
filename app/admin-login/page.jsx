@@ -1,5 +1,5 @@
 import UnifiedLogin from "../../src/components/Auth/UnifiedLogin";
 
 export default function Page() {
-  return <UnifiedLogin initialRole="admin" />;
+  return <UnifiedLogin initialRole="admin" hideTabs={true} />;
 }

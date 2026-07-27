@@ -5,7 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Loader2, ShieldCheck, ShieldAlert, Users, Key } from "lucide-react";
 
-export default function UnifiedLogin({ initialRole = 'admin' }) {
+export default function UnifiedLogin({ initialRole = 'admin', hideTabs = false }) {
   const [roleMode, setRoleMode] = useState(initialRole); // admin, security, staff, visitor
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -92,63 +92,65 @@ export default function UnifiedLogin({ initialRole = 'admin' }) {
       <main className="relative z-10 flex-1 flex items-center justify-center p-[16px]">
         <div className="auth-card" style={{ maxWidth: 440, width: "100%", borderRadius: 24, padding: "2.25rem 2rem", background: "white", boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)" }}>
           
-          {/* Portal Switcher Tabs */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, background: "#f1f5f9", padding: 4, borderRadius: 14, marginBottom: 24 }}>
-            <button
-              type="button"
-              onClick={() => { setRoleMode('admin'); setError(""); }}
-              style={{
-                padding: "8px 10px",
-                borderRadius: 10,
-                fontSize: 12,
-                fontWeight: 800,
-                border: 0,
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-                background: roleMode === 'admin' ? "white" : "transparent",
-                color: roleMode === 'admin' ? "#4f46e5" : "#64748b",
-                boxShadow: roleMode === 'admin' ? "0 2px 8px rgba(0,0,0,0.08)" : "none"
-              }}
-            >
-              👑 Admin
-            </button>
-            <button
-              type="button"
-              onClick={() => { setRoleMode('security'); setError(""); }}
-              style={{
-                padding: "8px 10px",
-                borderRadius: 10,
-                fontSize: 12,
-                fontWeight: 800,
-                border: 0,
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-                background: roleMode === 'security' ? "white" : "transparent",
-                color: roleMode === 'security' ? "#10b981" : "#64748b",
-                boxShadow: roleMode === 'security' ? "0 2px 8px rgba(0,0,0,0.08)" : "none"
-              }}
-            >
-              🛡️ Security
-            </button>
-            <button
-              type="button"
-              onClick={() => { setRoleMode('staff'); setError(""); }}
-              style={{
-                padding: "8px 10px",
-                borderRadius: 10,
-                fontSize: 12,
-                fontWeight: 800,
-                border: 0,
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-                background: roleMode === 'staff' ? "white" : "transparent",
-                color: roleMode === 'staff' ? "#f59e0b" : "#64748b",
-                boxShadow: roleMode === 'staff' ? "0 2px 8px rgba(0,0,0,0.08)" : "none"
-              }}
-            >
-              👥 Staff
-            </button>
-          </div>
+          {/* Portal Switcher Tabs (Only if hideTabs is false) */}
+          {!hideTabs && (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, background: "#f1f5f9", padding: 4, borderRadius: 14, marginBottom: 24 }}>
+              <button
+                type="button"
+                onClick={() => { setRoleMode('admin'); setError(""); }}
+                style={{
+                  padding: "8px 10px",
+                  borderRadius: 10,
+                  fontSize: 12,
+                  fontWeight: 800,
+                  border: 0,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  background: roleMode === 'admin' ? "white" : "transparent",
+                  color: roleMode === 'admin' ? "#4f46e5" : "#64748b",
+                  boxShadow: roleMode === 'admin' ? "0 2px 8px rgba(0,0,0,0.08)" : "none"
+                }}
+              >
+                👑 Admin
+              </button>
+              <button
+                type="button"
+                onClick={() => { setRoleMode('security'); setError(""); }}
+                style={{
+                  padding: "8px 10px",
+                  borderRadius: 10,
+                  fontSize: 12,
+                  fontWeight: 800,
+                  border: 0,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  background: roleMode === 'security' ? "white" : "transparent",
+                  color: roleMode === 'security' ? "#10b981" : "#64748b",
+                  boxShadow: roleMode === 'security' ? "0 2px 8px rgba(0,0,0,0.08)" : "none"
+                }}
+              >
+                🛡️ Security
+              </button>
+              <button
+                type="button"
+                onClick={() => { setRoleMode('staff'); setError(""); }}
+                style={{
+                  padding: "8px 10px",
+                  borderRadius: 10,
+                  fontSize: 12,
+                  fontWeight: 800,
+                  border: 0,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  background: roleMode === 'staff' ? "white" : "transparent",
+                  color: roleMode === 'staff' ? "#f59e0b" : "#64748b",
+                  boxShadow: roleMode === 'staff' ? "0 2px 8px rgba(0,0,0,0.08)" : "none"
+                }}
+              >
+                👥 Staff
+              </button>
+            </div>
+          )}
 
           {/* Header text inside card */}
           <div style={{ textAlign: "center", marginBottom: 20 }}>
