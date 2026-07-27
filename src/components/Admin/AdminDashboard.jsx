@@ -34,7 +34,6 @@ import ReportsOverview from "./ReportsOverview";
 import NotificationsOverview from "./NotificationsOverview";
 import VerificationOverview from "./VerificationOverview";
 import SettingsOverview from "./SettingsOverview";
-import MembershipOverview from "./MembershipOverview";
 
 import BranchManagementOverview from "./BranchManagementOverview";
 import EmployeeManagementOverview from "./EmployeeManagementOverview";
@@ -535,7 +534,6 @@ export default function AdminDashboard({ visitors: propVisitors, onNavigate: ext
           {activeTab === "notifications"        && <NotificationsOverview />}
           {activeTab === "verification_center"  && <VerificationOverview />}
           {activeTab === "settings"             && <SettingsOverview />}
-          {activeTab === "membership_management" && <MembershipOverview />}
 
           {/* Sub Admin specific tabs */}
           {activeTab === "appointments" && (
@@ -552,7 +550,7 @@ export default function AdminDashboard({ visitors: propVisitors, onNavigate: ext
              "all_branches","branch_analytics","create_branch","branch_performance","meeting_requests",
              "visitor_bookings","approval_queue","calendar_view","administration","visitor_management",
              "branch_management","employee_management","reports_analytics","notifications",
-             "verification_center","settings","membership_management",
+             "verification_center","settings",
              "appointments","vendor_management"].includes(activeTab) && (
             <GenericModule tabId={activeTab} />
           )}

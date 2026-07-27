@@ -35,11 +35,7 @@ export const SUPER_ADMIN_NAV = [
     id: "reports_analytics",
     icon: BarChart3,
   },
-  {
-    title: "Membership Management",
-    id: "membership_management",
-    icon: CreditCard,
-  },
+
   {
     title: "Notifications",
     id: "notifications",
