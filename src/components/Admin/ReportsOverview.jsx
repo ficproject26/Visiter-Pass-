@@ -3,23 +3,19 @@ import React, { useState } from 'react';
 import {  motion } from 'framer-motion';
 import { staggerContainer, fadeUpBounce } from '../../utils/animations';
 import { useTheme } from '../../context/ThemeContext';
+import { useData } from '../../context/DataContext';
 import {
   FileText, Calendar, BarChart2, TrendingUp, Clock, Download,
   ChevronRight, CheckCircle2, XCircle
 , ArrowRight } from 'lucide-react';
 
-const sections = [
+const sectionsConfig = [
   {
     id: 'daily_reports',
     title: 'Daily Reports',
     description: 'Overview of today\'s visitor traffic, check-ins, and appointments.',
     icon: FileText,
     accentColor: '#3b82f6',
-    stats: [{ label: 'Generated', value: 12 }, { label: 'Scheduled', value: 2 }],
-    items: [
-      { name: 'Today\'s Summary', detail: 'Generated at 08:00 AM', status: 'active' },
-      { name: 'Security Log', detail: 'Generated at 09:00 AM', status: 'active' },
-    ],
   },
   {
     id: 'weekly_reports',
@@ -27,10 +23,6 @@ const sections = [
     description: 'Weekly breakdown of visitor volume and operational metrics.',
     icon: Calendar,
     accentColor: '#8b5cf6',
-    stats: [{ label: 'Generated', value: 4 }, { label: 'Scheduled', value: 1 }],
-    items: [
-      { name: 'Last Week Summary', detail: 'Generated on Monday', status: 'active' },
-    ],
   },
   {
     id: 'monthly_reports',
@@ -38,10 +30,6 @@ const sections = [
     description: 'Comprehensive monthly analysis and compliance logs.',
     icon: BarChart2,
     accentColor: '#ec4899',
-    stats: [{ label: 'Generated', value: 12 }, { label: 'Scheduled', value: 1 }],
-    items: [
-      { name: 'May 2026 Overview', detail: 'Generated on June 1st', status: 'active' },
-    ],
   },
   {
     id: 'visitor_trends',
@@ -49,10 +37,6 @@ const sections = [
     description: 'Historical data analysis identifying patterns and anomalies in visitor behavior.',
     icon: TrendingUp,
     accentColor: '#10b981',
-    stats: [{ label: 'Data Points', value: '10K+' }, { label: 'Anomalies', value: 3 }],
-    items: [
-      { name: 'Q1 Growth Trend', detail: '+12% vs last quarter', status: 'active' },
-    ],
   },
   {
     id: 'peak_visit_hours',
@@ -60,10 +44,6 @@ const sections = [
     description: 'Identify busiest hours to optimize staffing and reception resources.',
     icon: Clock,
     accentColor: '#f59e0b',
-    stats: [{ label: 'Peak Time', value: '10 AM' }, { label: 'Avg Wait', value: '4m' }],
-    items: [
-      { name: 'Morning Rush', detail: '09:30 AM - 11:30 AM', status: 'active' },
-    ],
   },
   {
     id: 'export_reports',
@@ -71,15 +51,33 @@ const sections = [
     description: 'Custom report builder with CSV/PDF export options.',
     icon: Download,
     accentColor: '#6366f1',
-    stats: [{ label: 'Exports Today', value: 15 }, { label: 'Failed', value: 0 }],
-    items: [
-      { name: 'Compliance Export', detail: 'CSV format', status: 'active' },
-    ],
   },
 ];
 
 export default function ReportsOverview({ setActiveTab }) {
   const { isDark } = useTheme();
+  const { visitors = [] } = useData() || {};
+
+  const totalVisitors = visitors.length;
+  const approvedCount = visitors.filter(v => (v.approvalStatus || '').toUpperCase() === 'APPROVED').length;
+  const activeCount = visitors.filter(v => (v.status || '').toUpperCase().replace(/_/g, '-') === 'CHECKED-IN').length;
+  const pendingCount = visitors.filter(v => (v.approvalStatus || '').toUpperCase() === 'PENDING').length;
+
+  const sections = sectionsConfig.map(sec => {
+    let stats = [];
+    if (sec.id === 'daily_reports') {
+      stats = [{ label: 'Total Logs', value: totalVisitors }, { label: 'Checked In', value: activeCount }];
+    } else if (sec.id === 'weekly_reports' || sec.id === 'monthly_reports') {
+      stats = [{ label: 'DB Records', value: totalVisitors }, { label: 'Approved', value: approvedCount }];
+    } else if (sec.id === 'visitor_trends') {
+      stats = [{ label: 'Live Logs', value: totalVisitors }, { label: 'Pending', value: pendingCount }];
+    } else if (sec.id === 'peak_visit_hours') {
+      stats = [{ label: 'On Site', value: activeCount }, { label: 'Completed', value: totalVisitors - activeCount }];
+    } else {
+      stats = [{ label: 'Formats', value: 'CSV / Print' }, { label: 'Logs', value: totalVisitors }];
+    }
+    return { ...sec, stats };
+  });
   
   const glass = {
     background: isDark ? 'rgba(30,41,59,0.7)' : '#ffffff',

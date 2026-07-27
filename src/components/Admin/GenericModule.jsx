@@ -7,6 +7,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { staggerContainer, fadeUpBounce } from '../../utils/animations';
 import { useTheme } from '../../context/ThemeContext';
+import { useData } from '../../context/DataContext';
 import { ArrowLeft, Download, Printer } from 'lucide-react';
 
 const moduleContent = {
@@ -187,7 +188,105 @@ const moduleContent = {
 
 export default function GenericModule({ tabId, setActiveTab, compact = false }) {
   const { isDark } = useTheme();
-  const config = moduleContent[tabId];
+  const { visitors = [], employees = [], branches = [] } = useData() || {};
+
+  const baseConfig = moduleContent[tabId];
+
+  // Dynamically compute real database statistics if data is available
+  const totalVisitors = visitors.length;
+  const approvedVisitors = visitors.filter(v => (v.approvalStatus || '').toUpperCase() === 'APPROVED').length;
+  const pendingVisitors = visitors.filter(v => (v.approvalStatus || '').toUpperCase() === 'PENDING').length;
+  const checkedInVisitors = visitors.filter(v => (v.status || '').toUpperCase().replace(/_/g, '-') === 'CHECKED-IN').length;
+  const checkedOutVisitors = visitors.filter(v => (v.status || '').toUpperCase().replace(/_/g, '-') === 'CHECKED-OUT').length;
+  const totalEmployees = employees.length;
+
+  let dynamicConfig = baseConfig;
+
+  if (baseConfig) {
+    let dynamicStats = baseConfig.stats;
+    let dynamicItems = baseConfig.items;
+
+    if (tabId === 'visitor_trends') {
+      dynamicStats = [
+        { label: 'Total DB Visitors', value: totalVisitors },
+        { label: 'Checked In Now', value: checkedInVisitors },
+        { label: 'Approved Passes', value: approvedVisitors }
+      ];
+      dynamicItems = [
+        `Total Registered Visitors in Database: ${totalVisitors} live logs`,
+        `Currently Active (Checked In): ${checkedInVisitors} visitors on site`,
+        `Completed Visits (Checked Out): ${checkedOutVisitors} visitors`,
+        `Pending Desk Authorization: ${pendingVisitors} awaiting approval`,
+        ...visitors.slice(0, 5).map(v => `${v.fullName} – ${v.purpose} (${v.department || 'General'}) – Visit Date: ${v.visitDate || 'Today'}`)
+      ];
+    } else if (tabId === 'daily_reports') {
+      dynamicStats = [
+        { label: 'Total DB Visitors', value: totalVisitors },
+        { label: 'Checked In', value: checkedInVisitors },
+        { label: 'Approved Rate', value: totalVisitors > 0 ? `${Math.round((approvedVisitors / totalVisitors) * 100)}%` : '100%' }
+      ];
+      dynamicItems = [
+        `Total Registered Visitors: ${totalVisitors} logs`,
+        `Verified & Approved Visitor Passes: ${approvedVisitors}`,
+        `Currently Checked In at Gate: ${checkedInVisitors}`,
+        `Awaiting Desk Verification: ${pendingVisitors}`,
+        ...visitors.slice(0, 5).map(v => `[LOG] ${v.fullName} (Pass ${v.id}) – Host: ${v.personToMeet || 'Reception'} – Status: ${v.status || 'Pending'}`)
+      ];
+    } else if (tabId === 'weekly_reports' || tabId === 'monthly_reports') {
+      dynamicStats = [
+        { label: 'Total DB Visitors', value: totalVisitors },
+        { label: 'Approved Passes', value: approvedVisitors },
+        { label: 'Active Employees', value: totalEmployees }
+      ];
+      dynamicItems = [
+        `MongoDB Live Visitor Database Count: ${totalVisitors} records`,
+        `Registered Employee Hosts: ${totalEmployees} staff members`,
+        `Checked Out Visits: ${checkedOutVisitors} completed visits`,
+        ...visitors.slice(0, 5).map(v => `Visitor Log: ${v.fullName} – Host: ${v.personToMeet} – Location: ${v.branch || 'Main HQ'}`)
+      ];
+    } else if (tabId === 'peak_visit_hours') {
+      dynamicStats = [
+        { label: 'Total Gate Logs', value: totalVisitors },
+        { label: 'Checked In Now', value: checkedInVisitors },
+        { label: 'Checked Out', value: checkedOutVisitors }
+      ];
+      dynamicItems = [
+        `Total Gate Checks Recorded: ${totalVisitors} visitors`,
+        `Current Active Visitors on Site: ${checkedInVisitors}`,
+        `Completed Checked-out Visitors: ${checkedOutVisitors}`,
+        ...visitors.slice(0, 5).map(v => `${v.fullName} (${v.id}) – Entry Time: ${v.checkInTime || 'Registered'}`)
+      ];
+    } else if (tabId === 'sub_admins') {
+      dynamicStats = [
+        { label: 'Total Staff/Employees', value: totalEmployees },
+        { label: 'Active Status', value: employees.filter(e => (e.status || 'active').toLowerCase() === 'active').length },
+        { label: 'Total Visitors', value: totalVisitors }
+      ];
+      dynamicItems = employees.slice(0, 6).map(e => `${e.name} – ${e.department || 'Management'} – Email: ${e.email} – Status: ${e.status || 'Active'}`);
+    } else if (tabId === 'host_directory' || tabId === 'department_management') {
+      dynamicStats = [
+        { label: 'Total Employee Hosts', value: totalEmployees },
+        { label: 'Active Status', value: employees.filter(e => (e.status || 'active').toLowerCase() === 'active').length },
+        { label: 'Departments', value: [...new Set(employees.map(e => e.department).filter(Boolean))].length || 5 }
+      ];
+      dynamicItems = employees.slice(0, 6).map(e => `${e.name} – Dept: ${e.department || 'General'} – Email: ${e.email || '—'} – Status: ${e.status || 'Active'}`);
+    } else if (tabId === 'qr_pass_generator' || tabId === 'qr_scan_logs' || tabId === 'id_verification_records' || tabId === 'visitor_verification') {
+      dynamicStats = [
+        { label: 'Verified Passes', value: approvedVisitors },
+        { label: 'Total DB Logs', value: totalVisitors },
+        { label: 'On-site Visitors', value: checkedInVisitors }
+      ];
+      dynamicItems = visitors.slice(0, 6).map(v => `Pass ${v.id}: ${v.fullName} – ID Type: ${v.idType || 'Aadhaar'} (${v.idNumber || 'Verified'}) – Approval: ${v.approvalStatus || 'APPROVED'}`);
+    }
+
+    dynamicConfig = {
+      ...baseConfig,
+      stats: dynamicStats,
+      items: dynamicItems
+    };
+  }
+
+  const config = dynamicConfig;
 
   const handleExportCSV = () => {
     if (!config) return;
