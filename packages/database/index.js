@@ -5,6 +5,8 @@ export {
   updateVisitor,
   getVisitorById,
   getBranches,
-  createBranch
+  createBranch,
+  getEmployees,
+  createEmployee
 } from './dbHandler.js';
 

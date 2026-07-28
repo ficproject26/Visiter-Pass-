@@ -57,12 +57,29 @@ export default function AddEmployeeModal({ onClose, onAdd }) {
         body: JSON.stringify(newEmp)
       });
 
+      const resText = await response.text();
+      let errData = {};
+      let savedEmp = newEmp;
+      try {
+        const parsed = JSON.parse(resText);
+        if (typeof parsed === 'object' && parsed !== null) {
+          if (parsed.error) errData = parsed;
+          else savedEmp = parsed;
+        }
+      } catch (e) {}
+
       if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.error || "Failed to save employee");
+        throw new Error(errData.error || `Failed to save employee (${response.status})`);
       }
 
-      const savedEmp = await response.json();
+      if (typeof window !== 'undefined') {
+        try {
+          const existing = JSON.parse(localStorage.getItem('visitoros_saved_employees') || '[]');
+          const updated = [savedEmp, ...existing.filter(e => e.email !== savedEmp.email)];
+          localStorage.setItem('visitoros_saved_employees', JSON.stringify(updated));
+        } catch (e) {}
+      }
+
       setSuccess(true);
 
       // Show success for 1.2s then close

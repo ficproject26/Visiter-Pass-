@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
-import { getEmployees, createEmployee } from '../../../lib/dbHandler';
+import { getEmployees, createEmployee } from '@vos/database';
 
 export async function GET() {
   try {

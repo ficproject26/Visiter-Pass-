@@ -6,7 +6,16 @@ const DataContext = createContext();
 
 export function DataProvider({ children }) {
   const [visitors, setVisitors] = useState([]);
-  const [employees, setEmployees] = useState([]);
+  const [employees, setEmployees] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return JSON.parse(localStorage.getItem('visitoros_saved_employees') || '[]');
+      } catch (e) {
+        return [];
+      }
+    }
+    return [];
+  });
   const [branches, setBranches] = useState(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -46,7 +55,14 @@ export function DataProvider({ children }) {
       const branchData = await parseJson(branchRes);
       
       if (Array.isArray(visData)) setVisitors(visData);
-      if (Array.isArray(empData)) setEmployees(empData);
+      if (Array.isArray(empData) && empData.length > 0) {
+        setEmployees(empData);
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem('visitoros_saved_employees', JSON.stringify(empData));
+          } catch (e) {}
+        }
+      }
       if (Array.isArray(branchData) && branchData.length > 0) {
         setBranches(branchData);
         if (typeof window !== 'undefined') {

@@ -435,3 +435,83 @@ export async function createBranch(data) {
 
   return newRecord;
 }
+
+export async function getEmployees() {
+  const fileEmps = readJsonFile('employees.json', []);
+  let dbEmps = [];
+  try {
+    const fetched = await withTimeout(prisma.employee.findMany(), 3000).catch(() => []);
+    if (fetched && fetched.length > 0) {
+      dbEmps = fetched;
+    }
+  } catch (err) {
+    console.warn("Prisma employee.findMany error:", err.message);
+  }
+
+  const mergedMap = new Map();
+  for (const e of fileEmps) {
+    const key = (e.email || e.id || '').toLowerCase();
+    if (key) mergedMap.set(key, e);
+  }
+  for (const e of dbEmps) {
+    const key = (e.email || e.empId || e.id || '').toLowerCase();
+    if (key) {
+      mergedMap.set(key, {
+        ...e,
+        id: e.empId || e.id,
+        photo: e.photoUrl || e.photo
+      });
+    }
+  }
+
+  const combined = Array.from(mergedMap.values());
+  return combined;
+}
+
+export async function createEmployee(data) {
+  const empId = data.id || data.empId || `EMP-${Math.floor(Math.random() * 900000) + 100000}`;
+  const newRecord = {
+    id: empId,
+    empId: empId,
+    name: data.name || '',
+    email: data.email || '',
+    password: data.password || 'password123',
+    role: data.role || 'Security Officer',
+    department: data.department || 'Security',
+    location: data.location || 'Bangalore HQ',
+    status: data.status || 'active',
+    photo: data.photo || null,
+    createdAt: new Date().toISOString()
+  };
+
+  const employees = readJsonFile('employees.json', []);
+  employees.unshift(newRecord);
+  writeJsonFile('employees.json', employees);
+
+  try {
+    const dbCreated = await withTimeout(prisma.employee.create({
+      data: {
+        empId: empId,
+        name: data.name || '',
+        email: data.email || '',
+        password: data.password || 'password123',
+        role: data.role || 'Security Officer',
+        department: data.department || 'Security',
+        location: data.location || 'Bangalore HQ',
+        status: data.status || 'active',
+        photoUrl: data.photo || null
+      }
+    }), 4000).catch(err => {
+      console.error("Prisma employee.create error:", err.message);
+      return null;
+    });
+
+    if (dbCreated) {
+      console.log("Successfully persisted employee in MongoDB Atlas:", dbCreated.email);
+    }
+  } catch (err) {
+    console.error("MongoDB Atlas employee creation exception:", err.message);
+  }
+
+  return newRecord;
+}
