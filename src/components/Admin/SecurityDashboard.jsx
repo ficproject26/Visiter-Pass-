@@ -11,7 +11,14 @@ import { useAuth } from "../../context/AuthContext";
 
 export default function SecurityDashboard({ onNavigate: externalOnNavigate }) {
   const router = useRouter();
-  const { logout } = useAuth();
+  const { user, logout, loading: authLoading } = useAuth();
+
+  React.useEffect(() => {
+    if (!authLoading && (!user || (user.role !== 'security' && user.role !== 'gate' && user.role !== 'guard' && user.role !== 'admin' && user.role !== 'subadmin'))) {
+      router.replace("/security-login");
+    }
+  }, [user, authLoading, router]);
+
   const onNavigate = externalOnNavigate || ((target) => {
     if (target === "landing") router.push("/");
     else router.push(`/${target}`);
@@ -21,6 +28,8 @@ export default function SecurityDashboard({ onNavigate: externalOnNavigate }) {
   const { visitors = [], refreshData } = useData();
   const [activeTab, setActiveTab] = useState("scanner");
   const [selectedVisitorId, setSelectedVisitorId] = useState(null);
+
+  if (!user && !authLoading) return null;
 
   // Auto-refresh gate data every 5 seconds so security sees live host approval changes
   React.useEffect(() => {

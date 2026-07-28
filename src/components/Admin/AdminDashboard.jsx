@@ -52,7 +52,14 @@ export default function AdminDashboard({ visitors: propVisitors, onNavigate: ext
     else router.push(`/${target}`);
   });
 
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+
+  React.useEffect(() => {
+    if (!authLoading && (!user || (user.role !== 'admin' && user.role !== 'subadmin'))) {
+      router.replace("/admin-login");
+    }
+  }, [user, authLoading, router]);
+
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterDept, setFilterDept] = useState("all");
@@ -66,6 +73,8 @@ export default function AdminDashboard({ visitors: propVisitors, onNavigate: ext
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { isDark, toggle: toggleTheme } = useTheme();
   const { visitors: contextVisitors, refreshData } = useData();
+
+  if (!user && !authLoading) return null;
   
   const visitors = propVisitors || contextVisitors || [];
 
