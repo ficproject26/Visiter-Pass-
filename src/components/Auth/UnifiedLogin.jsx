@@ -16,15 +16,9 @@ export default function UnifiedLogin({ initialRole = 'admin', hideTabs = false }
   const { login } = useAuth();
   const router = useRouter();
 
-  // Set default placeholder email based on selected role mode
+  // Keep email and password empty by default so user types their credentials
   useEffect(() => {
-    if (roleMode === 'admin' && !email) {
-      setEmail("superadmin@visitoros.com");
-    } else if (roleMode === 'security' && !email) {
-      setEmail("kathiresan@gmail.com");
-    } else if (roleMode === 'staff' && !email) {
-      setEmail("dhanushiyasri192004@gmail.com");
-    }
+    setError("");
   }, [roleMode]);
 
   const handleSubmit = async (e) => {
@@ -58,7 +52,7 @@ export default function UnifiedLogin({ initialRole = 'admin', hideTabs = false }
       badgeBg: "rgba(79, 70, 229, 0.1)",
       badgeColor: "#4f46e5",
       icon: ShieldCheck,
-      placeholder: "superadmin@visitoros.com"
+      placeholder: "Enter admin email..."
     },
     security: {
       title: "Security Desk Portal",
@@ -66,7 +60,7 @@ export default function UnifiedLogin({ initialRole = 'admin', hideTabs = false }
       badgeBg: "rgba(16, 185, 129, 0.1)",
       badgeColor: "#10b981",
       icon: ShieldAlert,
-      placeholder: "security@visitoros.com"
+      placeholder: "Enter security email..."
     },
     staff: {
       title: "Staff & Employee Portal",
@@ -74,7 +68,7 @@ export default function UnifiedLogin({ initialRole = 'admin', hideTabs = false }
       badgeBg: "rgba(245, 158, 11, 0.1)",
       badgeColor: "#f59e0b",
       icon: Users,
-      placeholder: "staff@visitoros.com"
+      placeholder: "Enter staff email..."
     }
   };
 
