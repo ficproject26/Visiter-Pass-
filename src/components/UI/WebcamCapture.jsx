@@ -124,15 +124,26 @@ export default function WebcamCapture({ onCapture, initialPhoto = null }) {
   };
 
   return (
-    <div className="flex flex-col items-center w-full gap-4">
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", gap: "16px" }}>
       <div
         onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
         onDragLeave={() => setIsDragOver(false)}
         onDrop={handleDrop}
-        className={`relative w-full max-w-[280px] aspect-square rounded-2xl overflow-hidden transition-all duration-300 group
-          ${isDark ? 'bg-slate-800 border-slate-600' : 'bg-slate-100 border-slate-300'}
-          ${isDragOver ? 'border-indigo-500 border-4 scale-105 shadow-[0_0_20px_rgba(99,102,241,0.5)]' : 'border-2 border-dashed'}
-        `}
+        style={{
+          width: "100%",
+          maxWidth: "260px",
+          height: "220px",
+          borderRadius: "16px",
+          border: isDragOver ? "3px solid #6366f1" : isDark ? "2px dashed rgba(255,255,255,0.2)" : "2px dashed #cbd5e1",
+          backgroundColor: isDark ? "#1e293b" : "#f1f5f9",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          position: "relative",
+          overflow: "hidden",
+          transition: "all 0.3s ease"
+        }}
       >
         <AnimatePresence>
           {isCapturing && (
@@ -245,18 +256,46 @@ export default function WebcamCapture({ onCapture, initialPhoto = null }) {
               <button
                 type="button"
                 onClick={startCamera}
-                className="rounded-full text-xs font-bold bg-indigo-500 hover:bg-indigo-600 text-white transition-all whitespace-nowrap"
-                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "10px 20px", width: "100%" }}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  padding: "10px 20px",
+                  width: "100%",
+                  backgroundColor: "#4f46e5",
+                  color: "#ffffff",
+                  borderRadius: "9999px",
+                  fontWeight: 700,
+                  fontSize: "13px",
+                  border: "none",
+                  cursor: "pointer",
+                  boxShadow: "0 4px 12px rgba(79,70,229,0.3)"
+                }}
               >
                 📹 Enable Camera
               </button>
             )}
             <label
-              className={`rounded-full text-xs font-bold cursor-pointer shadow-md transition-all whitespace-nowrap ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-800 hover:bg-slate-900 text-white'}`}
-              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "10px 20px", width: "100%" }}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                padding: "10px 20px",
+                width: "100%",
+                backgroundColor: isDark ? "#334155" : "#0f172a",
+                color: "#ffffff",
+                borderRadius: "9999px",
+                fontWeight: 700,
+                fontSize: "13px",
+                border: "none",
+                cursor: "pointer",
+                boxShadow: "0 4px 12px rgba(15,23,42,0.2)"
+              }}
             >
               📁 Upload Photo
-              <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" style={{ display: "none" }} />
+              <input type="file" accept="image/*" onChange={handleFileUpload} style={{ display: "none" }} />
             </label>
           </div>
         )}
