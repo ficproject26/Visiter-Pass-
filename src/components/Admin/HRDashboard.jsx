@@ -21,7 +21,7 @@ export default function HRDashboard({ visitors: propVisitors = [], onUpdate, onN
 
   React.useEffect(() => {
     if (!authLoading && (!user || (user.role !== 'hr' && user.role !== 'employee' && user.role !== 'staff'))) {
-      router.replace("/staff-login");
+      router.replace("/login");
     }
   }, [user, authLoading, router]);
 
@@ -121,7 +121,7 @@ export default function HRDashboard({ visitors: propVisitors = [], onUpdate, onN
           <button
             onClick={() => {
               logout();
-              router.push("/staff-login");
+              router.push("/login");
             }}
             style={{
               display: "flex",

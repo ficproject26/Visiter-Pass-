@@ -189,7 +189,7 @@ export default function SidebarNavigation({ activeTab, setActiveTab, onNavigate:
         <button
           onClick={() => {
             logout();
-            router.push("/admin-login");
+            router.push("/login");
           }}
           style={{
             width: "100%",

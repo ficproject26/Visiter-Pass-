@@ -1,12 +1,11 @@
 "use client";
-import React from "react";
-import ProtectedRoute from "../../src/components/Auth/ProtectedRoute";
-import SecurityDashboard from "../../src/components/Admin/SecurityDashboard";
+import React, { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Page() {
-  return (
-    <ProtectedRoute allowedRoles={['security', 'gate', 'guard']} fallbackUrl="/security-login">
-      <SecurityDashboard />
-    </ProtectedRoute>
-  );
+  const router = useRouter();
+  useEffect(() => {
+    router.replace("/dashboard");
+  }, [router]);
+  return null;
 }

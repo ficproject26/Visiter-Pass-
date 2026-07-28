@@ -1,5 +1,11 @@
-import UnifiedLogin from "../../src/components/Auth/UnifiedLogin";
+"use client";
+import React, { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Page() {
-  return <UnifiedLogin initialRole="staff" hideTabs={true} />;
+  const router = useRouter();
+  useEffect(() => {
+    router.replace("/login");
+  }, [router]);
+  return null;
 }

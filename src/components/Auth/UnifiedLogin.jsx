@@ -45,18 +45,8 @@ export default function UnifiedLogin({ initialRole = 'admin', hideTabs = false }
         throw new Error("Access Denied: You do not have access to the Staff Portal.");
       }
 
-      // Successful portal authorization -> Redirect to respective dashboard
-      if (user.role === 'admin' || user.role === 'subadmin') {
-        router.push("/admin-dashboard");
-      } else if (user.role === 'security' || user.role === 'gate' || user.role === 'guard') {
-        router.push("/security-dashboard");
-      } else if (user.role === 'hr' || user.role === 'employee' || user.role === 'staff') {
-        router.push("/staff-dashboard");
-      } else if (user.role === 'visitor') {
-        router.push("/visitor-dashboard");
-      } else {
-        router.push("/admin-dashboard");
-      }
+      // Successful portal authorization -> Redirect to unified secure /dashboard
+      router.push("/dashboard");
     } catch (err) {
       setError(err.message || "Invalid email or password");
     } finally {

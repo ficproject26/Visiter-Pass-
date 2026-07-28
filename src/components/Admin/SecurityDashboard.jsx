@@ -15,7 +15,7 @@ export default function SecurityDashboard({ onNavigate: externalOnNavigate }) {
 
   React.useEffect(() => {
     if (!authLoading && (!user || (user.role !== 'security' && user.role !== 'gate' && user.role !== 'guard'))) {
-      router.replace("/security-login");
+      router.replace("/login");
     }
   }, [user, authLoading, router]);
 
@@ -136,7 +136,7 @@ export default function SecurityDashboard({ onNavigate: externalOnNavigate }) {
           <button
             onClick={() => {
               logout();
-              router.push("/security-login");
+              router.push("/login");
             }}
             style={{
               display: "flex",
