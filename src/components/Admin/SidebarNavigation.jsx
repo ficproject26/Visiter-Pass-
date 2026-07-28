@@ -6,9 +6,11 @@ import { useTheme } from "../../context/ThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronRight, LogOut, Moon, Sun } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "../../context/AuthContext";
 
 export default function SidebarNavigation({ activeTab, setActiveTab, onNavigate: externalOnNavigate, userRole = "superadmin", isOpen = true, onClose }) {
   const { isDark, toggle: toggleTheme } = useTheme();
+  const { logout } = useAuth();
   const router = useRouter();
   const onNavigate = externalOnNavigate || ((target) => {
     if (target === "landing") router.push("/");
@@ -185,7 +187,10 @@ export default function SidebarNavigation({ activeTab, setActiveTab, onNavigate:
       {/* Footer */}
       <div style={{ padding: "16px 20px", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
         <button
-          onClick={() => onNavigate("landing")}
+          onClick={() => {
+            logout();
+            router.push("/admin-login");
+          }}
           style={{
             width: "100%",
             display: "flex",

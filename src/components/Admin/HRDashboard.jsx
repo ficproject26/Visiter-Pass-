@@ -18,7 +18,7 @@ export default function HRDashboard({ visitors: propVisitors = [], onUpdate, onN
   });
 
   const { isDark } = useTheme();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { visitors: contextVisitors } = useData();
 
   // Combine live visitors from props or DataContext
@@ -111,7 +111,10 @@ export default function HRDashboard({ visitors: propVisitors = [], onUpdate, onN
         {/* Logout Action */}
         <div style={{ marginTop: "auto" }}>
           <button
-            onClick={() => onNavigate("landing")}
+            onClick={() => {
+              logout();
+              router.push("/staff-login");
+            }}
             style={{
               display: "flex",
               alignItems: "center",

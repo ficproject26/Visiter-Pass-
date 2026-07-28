@@ -7,8 +7,11 @@ import { useData } from "../../context/DataContext";
 import { API_BASE_URL } from "../../config/api";
 import QRScannerSim from "./QRScannerSim";
 
+import { useAuth } from "../../context/AuthContext";
+
 export default function SecurityDashboard({ onNavigate: externalOnNavigate }) {
   const router = useRouter();
+  const { logout } = useAuth();
   const onNavigate = externalOnNavigate || ((target) => {
     if (target === "landing") router.push("/");
     else router.push(`/${target}`);
@@ -122,7 +125,10 @@ export default function SecurityDashboard({ onNavigate: externalOnNavigate }) {
 
         <div style={{ marginTop: "auto" }}>
           <button
-            onClick={() => onNavigate("landing")}
+            onClick={() => {
+              logout();
+              router.push("/security-login");
+            }}
             style={{
               display: "flex",
               alignItems: "center",
