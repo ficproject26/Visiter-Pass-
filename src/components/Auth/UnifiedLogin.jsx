@@ -13,7 +13,7 @@ export default function UnifiedLogin({ initialRole = 'admin', hideTabs = false }
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const { login } = useAuth();
+  const { login, logout } = useAuth();
   const router = useRouter();
 
   // Keep email and password empty by default so user types their credentials
@@ -27,6 +27,24 @@ export default function UnifiedLogin({ initialRole = 'admin', hideTabs = false }
     setLoading(true);
     try {
       const user = await login(email, password);
+      
+      // Enforce Strict Portal Access Control
+      if (roleMode === 'admin' && user.role !== 'admin' && user.role !== 'subadmin') {
+        logout();
+        throw new Error(`Access Denied: ${user.role ? user.role.toUpperCase() : 'Non-admin'} credentials cannot be used to log into Super Admin Portal.`);
+      }
+
+      if (roleMode === 'security' && user.role !== 'security' && user.role !== 'admin' && user.role !== 'subadmin') {
+        logout();
+        throw new Error("Access Denied: Only Security personnel can log into Security Desk Portal.");
+      }
+
+      if (roleMode === 'staff' && user.role !== 'hr' && user.role !== 'employee' && user.role !== 'staff' && user.role !== 'admin' && user.role !== 'subadmin') {
+        logout();
+        throw new Error("Access Denied: You do not have access to the Staff Portal.");
+      }
+
+      // Successful portal authorization -> Redirect to respective dashboard
       if (user.role === 'admin' || user.role === 'subadmin') {
         router.push("/admin-dashboard");
       } else if (user.role === 'security' || user.role === 'gate' || user.role === 'guard') {
