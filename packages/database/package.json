@@ -1,0 +1,23 @@
+{
+  "name": "@vos/database",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./prisma.js",
+    "./dbHandler": "./dbHandler.js"
+  },
+  "scripts": {
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.14.0",
+    "cloudinary": "^2.1.0"
+  },
+  "devDependencies": {
+    "prisma": "^5.14.0"
+  }
+}

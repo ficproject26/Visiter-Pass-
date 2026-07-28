@@ -1,6 +1,7 @@
+export { prisma } from './prisma.js';
 export {
   getVisitors,
   createVisitor,
   updateVisitor,
   getVisitorById
-} from '../packages/database/dbHandler.js';
+} from './dbHandler.js';

@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@vos/database": ["packages/database/index.js"],
+      "@vos/database/*": ["packages/database/*"],
+      "@vos/ui": ["packages/ui/index.js"],
+      "@vos/ui/*": ["packages/ui/*"]
+    }
+  }
+}
