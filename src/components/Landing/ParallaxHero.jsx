@@ -1,7 +1,5 @@
 "use client";
 import { useState, useEffect } from "react";
-import Atropos from "atropos/react";
-import "atropos/css";
 import QRCode from "../UI/QRCode";
 import { motion } from "framer-motion";
 import TextReveal from "../UI/TextReveal";
@@ -331,15 +329,7 @@ export default function ParallaxHero({ onNavigate, onDemo }) {
                   animation: hovered ? "none" : "cardFloat 6s ease-in-out infinite",
                 }}
               >
-                <Atropos
-                  activeOffset={50}
-                  shadowScale={1.08}
-                  rotateXMax={14}
-                  rotateYMax={14}
-                  highlight={true}
-                  shadow={true}
-                  style={{ width: "100%" }}
-                >
+                <div style={{ width: "100%" }}>
                   <div style={{
                     background: "white", borderRadius: 20, overflow: "hidden",
                     boxShadow: "0 32px 64px rgba(0,0,0,0.45), 0 0 0 1px rgba(129, 140, 248,0.2)",
@@ -444,7 +434,7 @@ export default function ParallaxHero({ onNavigate, onDemo }) {
 
                     <div style={{ height: 4, background: "linear-gradient(90deg,#818CF8,#C084FC,#06b6d4,#2dd4bf,#818CF8)", backgroundSize: "200% 100%", animation: "shimmerBar 3s linear infinite" }} />
                   </div>
-                </Atropos>
+                </div>
               </div>
             </div>
           </motion.div>
