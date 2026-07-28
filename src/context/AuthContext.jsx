@@ -10,11 +10,21 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     // Check local storage for session
-    const session = localStorage.getItem('vos_session');
-    if (session) {
-      const parsedUser = JSON.parse(session);
-      setUser(parsedUser);
-      recordLoginSession(parsedUser);
+    try {
+      const session = localStorage.getItem('vos_session');
+      if (session) {
+        const parsedUser = JSON.parse(session);
+        // Session expires after 8 hours (8 * 60 * 60 * 1000 ms)
+        if (parsedUser.loginTime && (Date.now() - parsedUser.loginTime > 8 * 60 * 60 * 1000)) {
+          localStorage.removeItem('vos_session');
+          setUser(null);
+        } else {
+          setUser(parsedUser);
+          recordLoginSession(parsedUser);
+        }
+      }
+    } catch (e) {
+      localStorage.removeItem('vos_session');
     }
     setLoading(false);
   }, []);
@@ -58,7 +68,8 @@ export const AuthProvider = ({ children }) => {
         throw new Error(errorData.error || 'Invalid email or password');
       }
       
-      const userData = await response.json();
+      const rawData = await response.json();
+      const userData = { ...rawData, loginTime: Date.now() };
       setUser(userData);
       localStorage.setItem('vos_session', JSON.stringify(userData));
       recordLoginSession(userData);

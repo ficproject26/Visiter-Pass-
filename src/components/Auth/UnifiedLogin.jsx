@@ -16,8 +16,9 @@ export default function UnifiedLogin({ initialRole = 'admin', hideTabs = false }
   const { login, logout } = useAuth();
   const router = useRouter();
 
-  // Keep email and password empty by default so user types their credentials
+  // Clear any old/stale auth session whenever entering a login portal page
   useEffect(() => {
+    logout();
     setError("");
   }, [roleMode]);
 
