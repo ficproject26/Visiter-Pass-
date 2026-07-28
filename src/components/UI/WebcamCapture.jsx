@@ -211,54 +211,54 @@ export default function WebcamCapture({ onCapture, initialPhoto = null }) {
 
       <canvas ref={canvasRef} className="hidden" />
 
-      <div className="flex flex-wrap gap-3 justify-center w-full">
+      <div style={{ display: "flex", flexDirection: "column", gap: "10px", width: "100%", alignItems: "center" }}>
         {photo ? (
           <button
             type="button"
             onClick={clearPhoto}
-            className={`rounded-full text-sm font-bold transition-all whitespace-nowrap ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-200 hover:bg-slate-300 text-slate-800'}`}
-            style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "10px 32px" }}
+            className={`rounded-full text-xs font-bold transition-all whitespace-nowrap ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-200 hover:bg-slate-300 text-slate-800'}`}
+            style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "10px 20px", width: "100%", maxWidth: "240px" }}
           >
             🔄 Retake Photo
           </button>
         ) : cameraActive ? (
-          <>
+          <div style={{ display: "flex", gap: "8px", width: "100%", justifyContent: "center" }}>
             <button
               type="button"
               onClick={capturePhoto}
-              className="rounded-full text-sm font-bold bg-indigo-500 hover:bg-indigo-600 text-white shadow-lg shadow-indigo-500/30 transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
-              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "12px 48px" }}
+              className="rounded-full text-xs font-bold bg-indigo-500 hover:bg-indigo-600 text-white shadow-lg transition-all whitespace-nowrap"
+              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px", padding: "10px 18px", flex: 1 }}
             >
               <span>📸</span> <span>Capture</span>
             </button>
             <label
-              className={`rounded-full text-sm font-bold cursor-pointer transition-all whitespace-nowrap shadow-md ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-200 hover:bg-slate-300 text-slate-800'}`}
-              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "12px 48px" }}
+              className={`rounded-full text-xs font-bold cursor-pointer transition-all whitespace-nowrap shadow-md ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-200 hover:bg-slate-300 text-slate-800'}`}
+              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px", padding: "10px 18px", flex: 1 }}
             >
               <span>📁</span> <span>Upload</span>
-              <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+              <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" style={{ display: "none" }} />
             </label>
-          </>
+          </div>
         ) : (
-          <>
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px", width: "100%", maxWidth: "240px" }}>
             {hasCamera && (
               <button
                 type="button"
                 onClick={startCamera}
-                className="rounded-full text-sm font-bold bg-indigo-500 hover:bg-indigo-600 text-white transition-all whitespace-nowrap"
-                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "10px 32px" }}
+                className="rounded-full text-xs font-bold bg-indigo-500 hover:bg-indigo-600 text-white transition-all whitespace-nowrap"
+                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "10px 20px", width: "100%" }}
               >
                 📹 Enable Camera
               </button>
             )}
             <label
-              className={`rounded-full text-sm font-bold cursor-pointer shadow-lg transition-all hover:scale-105 active:scale-95 whitespace-nowrap ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-800 hover:bg-slate-900 text-white'}`}
-              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "12px 48px" }}
+              className={`rounded-full text-xs font-bold cursor-pointer shadow-md transition-all whitespace-nowrap ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-800 hover:bg-slate-900 text-white'}`}
+              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "10px 20px", width: "100%" }}
             >
               📁 Upload Photo
-              <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+              <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" style={{ display: "none" }} />
             </label>
-          </>
+          </div>
         )}
       </div>
 
