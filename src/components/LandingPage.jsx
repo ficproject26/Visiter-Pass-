@@ -20,7 +20,7 @@ export default function LandingPage() {
     } else if (target === "admin" || target === "login") {
       router.push("/login");
     } else if (target === "register") {
-      router.push("/visitor-dashboard");
+      router.push("/register");
     } else if (target === "status") {
       router.push("/check-status");
     } else {
