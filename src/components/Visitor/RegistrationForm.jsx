@@ -257,7 +257,7 @@ export default function RegistrationForm({ onNavigate: externalOnNavigate, onNew
           <motion.div variants={fadeUpBounce} className="form-grid-layout" style={{ display: "grid", gridTemplateColumns: "minmax(300px, 340px) 1fr", background: isDark ? "#111827" : "#FFFFFF", borderRadius: 20, border: isDark ? "1px solid rgba(255,255,255,0.05)" : "1px solid rgba(15,23,42,0.05)", overflow: "hidden", boxShadow: "0 10px 30px -10px rgba(0,0,0,0.1)" }}>
 
             {/* Left side: Photo capture fallback */}
-            <div style={{ padding: "2rem", background: isDark ? "rgba(13,148,136,0.05)" : "#f8fafc", borderRight: isDark ? "1px solid rgba(13,148,136,0.15)" : "1px solid #e2e8f0", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", gap: 14 }}>
+            <div style={{ padding: "2rem", background: isDark ? "rgba(13,148,136,0.05)" : "#f8fafc", borderRight: isDark ? "1px solid rgba(13,148,136,0.15)" : "1px solid #e2e8f0", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, height: "100%", boxSizing: "border-box" }}>
               <div style={{ textAlign: "center" }}>
                 <h3 style={{ fontSize: 15, fontWeight: 700, color: isDark ? "#F8FAFC" : "#0F172A", marginBottom: 4 }}>Verify Identity</h3>
                 <p style={{ fontSize: 12, color: "#64748b", maxWidth: 220 }}>Capture a live photo or upload a picture for security clearance badges.</p>

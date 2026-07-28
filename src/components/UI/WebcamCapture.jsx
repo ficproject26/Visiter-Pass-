@@ -124,7 +124,7 @@ export default function WebcamCapture({ onCapture, initialPhoto = null }) {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", gap: "16px", justifyContent: "flex-start" }}>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", gap: "12px", justifyContent: "center" }}>
       <div
         onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
         onDragLeave={() => setIsDragOver(false)}
@@ -132,7 +132,7 @@ export default function WebcamCapture({ onCapture, initialPhoto = null }) {
         style={{
           width: "100%",
           maxWidth: "260px",
-          height: "200px",
+          height: "240px",
           borderRadius: "16px",
           border: isDragOver ? "3px solid #6366f1" : isDark ? "2px dashed rgba(255,255,255,0.2)" : "2px dashed #cbd5e1",
           backgroundColor: isDark ? "#1e293b" : "#f1f5f9",
