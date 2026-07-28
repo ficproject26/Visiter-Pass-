@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
-import { getBranches, createBranch } from '../../../lib/dbHandler';
+import { getBranches, createBranch } from '@vos/database';
 
 export async function GET() {
   try {

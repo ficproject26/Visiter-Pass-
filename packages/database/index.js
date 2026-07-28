@@ -3,5 +3,8 @@ export {
   getVisitors,
   createVisitor,
   updateVisitor,
-  getVisitorById
+  getVisitorById,
+  getBranches,
+  createBranch
 } from './dbHandler.js';
+

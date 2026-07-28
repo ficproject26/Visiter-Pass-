@@ -27,9 +27,14 @@ export default function CreateBranch() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)
       });
+      const resText = await response.text();
+      let errData = {};
+      try {
+        errData = JSON.parse(resText);
+      } catch (e) {}
+
       if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || 'Failed to create branch');
+        throw new Error(errData.error || `Failed to create branch (${response.status})`);
       }
       refreshData();
       setSubmitted(true);

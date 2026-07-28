@@ -356,3 +356,32 @@ export async function getVisitorById(id) {
 
   return null;
 }
+
+export async function getBranches() {
+  const fileBranches = readJsonFile('branches.json', []);
+  return fileBranches;
+}
+
+export async function createBranch(data) {
+  const branchId = data.id || `BR-${Math.floor(Math.random() * 900) + 100}`;
+  const newRecord = {
+    id: branchId,
+    name: data.name || '',
+    type: data.type || 'Branch',
+    address: data.address || '',
+    city: data.city || (data.name ? data.name.split(' ')[0] : 'City'),
+    state: data.state || '',
+    pincode: data.pincode || '',
+    manager: data.manager || '',
+    phone: data.phone || '',
+    email: data.email || '',
+    capacity: data.capacity || '100',
+    status: 'active',
+    createdAt: new Date().toISOString()
+  };
+
+  const branches = readJsonFile('branches.json', []);
+  branches.unshift(newRecord);
+  writeJsonFile('branches.json', branches);
+  return newRecord;
+}
