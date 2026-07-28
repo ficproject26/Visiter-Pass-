@@ -36,6 +36,16 @@ export default function CreateBranch() {
       if (!response.ok) {
         throw new Error(errData.error || `Failed to create branch (${response.status})`);
       }
+
+      if (typeof window !== 'undefined') {
+        try {
+          const existing = JSON.parse(localStorage.getItem('visitoros_saved_branches') || '[]');
+          const newBranch = { ...form, id: `BR-${Date.now()}` };
+          const updated = [newBranch, ...existing.filter(b => b.name !== newBranch.name)];
+          localStorage.setItem('visitoros_saved_branches', JSON.stringify(updated));
+        } catch (e) {}
+      }
+
       refreshData();
       setSubmitted(true);
     } catch (err) {

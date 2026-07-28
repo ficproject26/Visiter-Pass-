@@ -7,7 +7,16 @@ const DataContext = createContext();
 export function DataProvider({ children }) {
   const [visitors, setVisitors] = useState([]);
   const [employees, setEmployees] = useState([]);
-  const [branches, setBranches] = useState([]);
+  const [branches, setBranches] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return JSON.parse(localStorage.getItem('visitoros_saved_branches') || '[]');
+      } catch (e) {
+        return [];
+      }
+    }
+    return [];
+  });
   const [loading, setLoading] = useState(true);
 
   const fetchLiveDatas = async (isBackground = false) => {
@@ -38,7 +47,14 @@ export function DataProvider({ children }) {
       
       if (Array.isArray(visData)) setVisitors(visData);
       if (Array.isArray(empData)) setEmployees(empData);
-      if (Array.isArray(branchData)) setBranches(branchData);
+      if (Array.isArray(branchData) && branchData.length > 0) {
+        setBranches(branchData);
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem('visitoros_saved_branches', JSON.stringify(branchData));
+          } catch (e) {}
+        }
+      }
     } catch (err) {
       console.error("Failed to fetch live datas:", err);
     } finally {

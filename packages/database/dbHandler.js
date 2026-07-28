@@ -359,7 +359,27 @@ export async function getVisitorById(id) {
 
 export async function getBranches() {
   const fileBranches = readJsonFile('branches.json', []);
-  return fileBranches;
+  let dbBranches = [];
+  try {
+    const fetched = await withTimeout(prisma.branch.findMany(), 3000).catch(() => []);
+    if (fetched && fetched.length > 0) {
+      dbBranches = fetched;
+    }
+  } catch (err) {
+    console.warn("Prisma branch.findMany error:", err.message);
+  }
+
+  const mergedMap = new Map();
+  for (const b of fileBranches) {
+    if (b.name) mergedMap.set(b.name.toLowerCase(), b);
+  }
+  for (const b of dbBranches) {
+    if (b.name) mergedMap.set(b.name.toLowerCase(), { ...b, id: b.id });
+  }
+
+  const combined = Array.from(mergedMap.values());
+  combined.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+  return combined;
 }
 
 export async function createBranch(data) {
@@ -375,6 +395,7 @@ export async function createBranch(data) {
     manager: data.manager || '',
     phone: data.phone || '',
     email: data.email || '',
+    password: data.password || '',
     capacity: data.capacity || '100',
     status: 'active',
     createdAt: new Date().toISOString()
@@ -383,5 +404,34 @@ export async function createBranch(data) {
   const branches = readJsonFile('branches.json', []);
   branches.unshift(newRecord);
   writeJsonFile('branches.json', branches);
+
+  try {
+    const dbCreated = await withTimeout(prisma.branch.create({
+      data: {
+        name: data.name || '',
+        type: data.type || 'Branch',
+        address: data.address || '',
+        city: data.city || (data.name ? data.name.split(' ')[0] : 'City'),
+        state: data.state || '',
+        pincode: data.pincode || '',
+        manager: data.manager || '',
+        phone: data.phone || '',
+        email: data.email || '',
+        password: data.password || null,
+        capacity: data.capacity || '100',
+        status: 'active'
+      }
+    }), 4000).catch(err => {
+      console.error("Prisma branch.create error:", err.message);
+      return null;
+    });
+
+    if (dbCreated) {
+      console.log("Successfully persisted branch in MongoDB Atlas:", dbCreated.name);
+    }
+  } catch (err) {
+    console.error("MongoDB Atlas branch creation exception:", err.message);
+  }
+
   return newRecord;
 }
