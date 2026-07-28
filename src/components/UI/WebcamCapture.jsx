@@ -130,10 +130,9 @@ export default function WebcamCapture({ onCapture, initialPhoto = null }) {
         onDragLeave={() => setIsDragOver(false)}
         onDrop={handleDrop}
         style={{
-          width: "100%",
-          maxWidth: "260px",
-          height: "240px",
-          borderRadius: "16px",
+          width: "220px",
+          height: "220px",
+          borderRadius: "20px",
           border: isDragOver ? "3px solid #6366f1" : isDark ? "2px dashed rgba(255,255,255,0.2)" : "2px dashed #cbd5e1",
           backgroundColor: isDark ? "#1e293b" : "#f1f5f9",
           display: "flex",
@@ -142,7 +141,8 @@ export default function WebcamCapture({ onCapture, initialPhoto = null }) {
           justifyContent: "center",
           position: "relative",
           overflow: "hidden",
-          transition: "all 0.3s ease"
+          transition: "all 0.3s ease",
+          boxShadow: isDark ? "0 8px 20px rgba(0,0,0,0.3)" : "0 8px 20px rgba(0,0,0,0.06)"
         }}
       >
         <AnimatePresence>
@@ -196,46 +196,91 @@ export default function WebcamCapture({ onCapture, initialPhoto = null }) {
             </div>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-            <div className={`text-4xl mb-4 ${isDragOver ? 'animate-bounce' : ''}`}>📁</div>
-            <p className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", width: "100%", padding: "16px", textAlign: "center", boxSizing: "border-box" }}>
+            <div style={{ fontSize: "32px", marginBottom: "8px" }}>📁</div>
+            <p style={{ fontSize: "12px", fontWeight: 600, color: isDark ? "#94a3b8" : "#64748b", margin: 0, lineHeight: 1.4 }}>
               {isDragOver ? 'Drop image here' : 'Camera inactive or unavailable.'}
             </p>
             {!isDragOver && (
-              <p className="text-xs opacity-50 mt-2">Drag & drop a file to upload</p>
+              <p style={{ fontSize: "11px", color: isDark ? "#64748b" : "#94a3b8", margin: "4px 0 0 0" }}>
+                Drag & drop a file to upload
+              </p>
             )}
           </div>
         )}
       </div>
 
-      <canvas ref={canvasRef} className="hidden" />
+      <canvas ref={canvasRef} style={{ display: "none" }} />
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "10px", width: "100%", alignItems: "center" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "10px", width: "100%", alignItems: "center", marginTop: "6px" }}>
         {photo ? (
           <button
             type="button"
             onClick={clearPhoto}
-            className={`rounded-full text-xs font-bold transition-all whitespace-nowrap ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-200 hover:bg-slate-300 text-slate-800'}`}
-            style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "10px 20px", width: "100%", maxWidth: "240px" }}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              padding: "10px 20px",
+              width: "100%",
+              maxWidth: "240px",
+              backgroundColor: isDark ? "#334155" : "#0f172a",
+              color: "#ffffff",
+              borderRadius: "9999px",
+              fontWeight: 700,
+              fontSize: "13px",
+              border: "none",
+              cursor: "pointer",
+              boxShadow: "0 4px 12px rgba(15,23,42,0.2)"
+            }}
           >
             🔄 Retake Photo
           </button>
         ) : cameraActive ? (
-          <div style={{ display: "flex", gap: "8px", width: "100%", justifyContent: "center" }}>
+          <div style={{ display: "flex", gap: "10px", width: "100%", maxWidth: "260px", justifyContent: "center" }}>
             <button
               type="button"
               onClick={capturePhoto}
-              className="rounded-full text-xs font-bold bg-indigo-500 hover:bg-indigo-600 text-white shadow-lg transition-all whitespace-nowrap"
-              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px", padding: "10px 18px", flex: 1 }}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "6px",
+                padding: "10px 18px",
+                flex: 1,
+                backgroundColor: "#4f46e5",
+                color: "#ffffff",
+                borderRadius: "9999px",
+                fontWeight: 700,
+                fontSize: "13px",
+                border: "none",
+                cursor: "pointer",
+                boxShadow: "0 6px 16px rgba(79,70,229,0.4)"
+              }}
             >
               <span>📸</span> <span>Capture</span>
             </button>
             <label
-              className={`rounded-full text-xs font-bold cursor-pointer transition-all whitespace-nowrap shadow-md ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-200 hover:bg-slate-300 text-slate-800'}`}
-              style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px", padding: "10px 18px", flex: 1 }}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "6px",
+                padding: "10px 18px",
+                flex: 1,
+                backgroundColor: isDark ? "#334155" : "#0f172a",
+                color: "#ffffff",
+                borderRadius: "9999px",
+                fontWeight: 700,
+                fontSize: "13px",
+                border: "none",
+                cursor: "pointer",
+                boxShadow: "0 6px 16px rgba(15,23,42,0.3)"
+              }}
             >
               <span>📁</span> <span>Upload</span>
-              <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" style={{ display: "none" }} />
+              <input type="file" accept="image/*" onChange={handleFileUpload} style={{ display: "none" }} />
             </label>
           </div>
         ) : (

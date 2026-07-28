@@ -254,143 +254,159 @@ export default function RegistrationForm({ onNavigate: externalOnNavigate, onNew
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
 
           {/* Main sections layout */}
-          <motion.div variants={fadeUpBounce} className="form-grid-layout" style={{ display: "grid", gridTemplateColumns: "minmax(300px, 340px) 1fr", background: isDark ? "#111827" : "#FFFFFF", borderRadius: 20, border: isDark ? "1px solid rgba(255,255,255,0.05)" : "1px solid rgba(15,23,42,0.05)", overflow: "hidden", boxShadow: "0 10px 30px -10px rgba(0,0,0,0.1)" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "2rem", alignItems: "start" }}>
 
-            {/* Left side: Photo capture fallback */}
-            <div style={{ padding: "2rem", background: isDark ? "rgba(13,148,136,0.05)" : "#f8fafc", borderRight: isDark ? "1px solid rgba(13,148,136,0.15)" : "1px solid #e2e8f0", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16, height: "100%", boxSizing: "border-box" }}>
+            {/* Left Card: Identity & Photo Capture */}
+            <motion.div variants={fadeUpBounce} style={{ padding: "2rem", background: isDark ? "#111827" : "#FFFFFF", borderRadius: 20, border: isDark ? "1px solid rgba(255,255,255,0.05)" : "1px solid rgba(15,23,42,0.05)", boxShadow: "0 10px 30px -10px rgba(0,0,0,0.1)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start", gap: 16 }}>
               <div style={{ textAlign: "center" }}>
-                <h3 style={{ fontSize: 15, fontWeight: 700, color: isDark ? "#F8FAFC" : "#0F172A", marginBottom: 4 }}>Verify Identity</h3>
-                <p style={{ fontSize: 12, color: "#64748b", maxWidth: 220 }}>Capture a live photo or upload a picture for security clearance badges.</p>
+                <h3 style={{ fontSize: 16, fontWeight: 800, color: isDark ? "#F8FAFC" : "#0F172A", marginBottom: 6, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                  <span>📸</span> Verify Identity
+                </h3>
+                <p style={{ fontSize: 12, color: "#64748b", maxWidth: 260, margin: "0 auto" }}>Capture live photo or upload a picture for digital clearance badge.</p>
               </div>
+
               <WebcamCapture
                 onCapture={(imgData) => setField("photo", imgData)}
                 initialPhoto={form.photo}
               />
               {errors.photo && <span style={{ fontSize: 12, color: "#ef4444", fontWeight: "bold" }}>{errors.photo}</span>}
-            </div>
 
-            {/* Right side: Info inputs */}
-            <div style={{ padding: "2rem" }}>
-              <h3 style={{ fontSize: 15, fontWeight: 700, color: isDark ? "#F8FAFC" : "#0F172A", marginBottom: 20, display: "flex", alignItems: "center", gap: 8 }}>
-                <span>👤</span> Personal Information
+              {/* Security Badges Box */}
+              <div style={{ width: "100%", padding: "14px", borderRadius: 14, background: isDark ? "rgba(255,255,255,0.03)" : "#f8fafc", border: isDark ? "1px solid rgba(255,255,255,0.06)" : "1px solid #e2e8f0", display: "flex", flexDirection: "column", gap: 10 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12, color: isDark ? "#cbd5e1" : "#475569" }}>
+                  <span style={{ fontSize: 16 }}>🛡️</span> <span style={{ fontWeight: 600 }}>Biometric Security Clearance</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12, color: isDark ? "#cbd5e1" : "#475569" }}>
+                  <span style={{ fontSize: 16 }}>🪪</span> <span style={{ fontWeight: 600 }}>Instant Gate Pass Badge</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12, color: isDark ? "#cbd5e1" : "#475569" }}>
+                  <span style={{ fontSize: 16 }}>⚡</span> <span style={{ fontWeight: 600 }}>Automated Host Notification</span>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Right Card: Personal Information */}
+            <motion.div variants={fadeUpBounce} style={{ padding: "2.5rem", background: isDark ? "#111827" : "#FFFFFF", borderRadius: 20, border: isDark ? "1px solid rgba(255,255,255,0.05)" : "1px solid rgba(15,23,42,0.05)", boxShadow: "0 10px 30px -10px rgba(0,0,0,0.1)" }}>
+              <h3 style={{ fontSize: 17, fontWeight: 800, color: isDark ? "#F8FAFC" : "#0F172A", marginBottom: 24, display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 20 }}>👤</span> Personal Information
               </h3>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                {/* Full name */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {/* Full name */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? "rgba(248,250,252,0.55)" : "#475569" }}>Full Name *</label>
+                <input
+                  type="text"
+                  value={form.fullName}
+                  onChange={e => setField("fullName", e.target.value)}
+                  placeholder="Enter your name"
+                  className="form-input"
+                  style={{ borderColor: errors.fullName ? "#ef4444" : successes.fullName ? "#10b981" : "" }}
+                />
+                {errors.fullName && <span style={{ fontSize: 11, color: "#ef4444" }}>{errors.fullName}</span>}
+              </div>
+
+              {/* Phone & Emergency */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? "rgba(248,250,252,0.55)" : "#475569" }}>Full Name *</label>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? "rgba(248,250,252,0.55)" : "#475569" }}>Phone Number *</label>
+                  <input
+                    type="tel"
+                    value={form.phone}
+                    onChange={e => handlePhoneChange("phone", e.target.value)}
+                    placeholder="9876543210"
+                    className="form-input"
+                    style={{ borderColor: errors.phone ? "#ef4444" : successes.phone ? "#10b981" : "" }}
+                  />
+                  {errors.phone && <span style={{ fontSize: 11, color: "#ef4444" }}>{errors.phone}</span>}
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? "rgba(248,250,252,0.55)" : "#475569" }}>Emergency Contact (Optional)</label>
+                  <input
+                    type="tel"
+                    value={form.emergencyContact}
+                    onChange={e => handlePhoneChange("emergencyContact", e.target.value)}
+                    placeholder="10-digit number"
+                    className="form-input"
+                    style={{ borderColor: errors.emergencyContact ? "#ef4444" : successes.emergencyContact ? "#10b981" : "" }}
+                  />
+                  {errors.emergencyContact && <span style={{ fontSize: 11, color: "#ef4444" }}>{errors.emergencyContact}</span>}
+                </div>
+              </div>
+
+              {/* Email */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? "rgba(248,250,252,0.55)" : "#475569" }}>Email Address *</label>
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={e => setField("email", e.target.value)}
+                  placeholder="name@email.com"
+                  className="form-input"
+                  style={{ borderColor: errors.email ? "#ef4444" : "" }}
+                />
+                {errors.email && <span style={{ fontSize: 11, color: "#ef4444" }}>{errors.email}</span>}
+              </div>
+
+              {/* ID Type & Number */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? "rgba(248,250,252,0.55)" : "#475569" }}>ID Verification Type *</label>
+                  <select
+                    value={form.idType}
+                    onChange={e => handleIdTypeChange(e.target.value)}
+                    className="form-input"
+                    style={{ borderColor: errors.idType ? "#ef4444" : "", cursor: "pointer" }}
+                  >
+                    <option value="">Select ID type...</option>
+                    {ID_TYPES.map(o => <option key={o} value={o}>{o}</option>)}
+                  </select>
+                  {errors.idType && <span style={{ fontSize: 11, color: "#ef4444" }}>{errors.idType}</span>}
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? "rgba(248,250,252,0.55)" : "#475569" }}>ID Document Number *</label>
                   <input
                     type="text"
-                    value={form.fullName}
-                    onChange={e => setField("fullName", e.target.value)}
-                    placeholder="Enter your name"
+                    value={form.idNumber}
+                    onChange={e => handleIdNumberChange(e.target.value)}
+                    placeholder={
+                      form.idType === 'Aadhaar' ? 'XXXX XXXX XXXX' : 
+                      form.idType === 'PAN Card' ? 'ABCDE1234F' : 
+                      form.idType === 'Voter ID' ? 'ABC1234567' : 
+                      'Enter ID number'
+                    }
                     className="form-input"
-                    style={{ borderColor: errors.fullName ? "#ef4444" : successes.fullName ? "#10b981" : "" }}
+                    disabled={!form.idType}
+                    style={{ borderColor: errors.idNumber ? "#ef4444" : successes.idNumber ? "#10b981" : "" }}
                   />
-                  {errors.fullName && <span style={{ fontSize: 11, color: "#ef4444" }}>{errors.fullName}</span>}
+                  {errors.idNumber && <span style={{ fontSize: 11, color: "#ef4444" }}>{errors.idNumber}</span>}
                 </div>
-
-                {/* Phone & Emergency */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? "rgba(248,250,252,0.55)" : "#475569" }}>Phone Number *</label>
-                    <input
-                      type="tel"
-                      value={form.phone}
-                      onChange={e => handlePhoneChange("phone", e.target.value)}
-                      placeholder="9876543210"
-                      className="form-input"
-                      style={{ borderColor: errors.phone ? "#ef4444" : successes.phone ? "#10b981" : "" }}
-                    />
-                    {errors.phone && <span style={{ fontSize: 11, color: "#ef4444" }}>{errors.phone}</span>}
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? "rgba(248,250,252,0.55)" : "#475569" }}>Emergency Contact (Optional)</label>
-                    <input
-                      type="tel"
-                      value={form.emergencyContact}
-                      onChange={e => handlePhoneChange("emergencyContact", e.target.value)}
-                      placeholder="10-digit number"
-                      className="form-input"
-                      style={{ borderColor: errors.emergencyContact ? "#ef4444" : successes.emergencyContact ? "#10b981" : "" }}
-                    />
-                    {errors.emergencyContact && <span style={{ fontSize: 11, color: "#ef4444" }}>{errors.emergencyContact}</span>}
-                  </div>
-                </div>
-
-                {/* Email */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? "rgba(248,250,252,0.55)" : "#475569" }}>Email Address *</label>
-                  <input
-                    type="email"
-                    value={form.email}
-                    onChange={e => setField("email", e.target.value)}
-                    placeholder="name@email.com"
-                    className="form-input"
-                    style={{ borderColor: errors.email ? "#ef4444" : "" }}
-                  />
-                  {errors.email && <span style={{ fontSize: 11, color: "#ef4444" }}>{errors.email}</span>}
-                </div>
-
-                {/* ID Type & Number */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? "rgba(248,250,252,0.55)" : "#475569" }}>ID Verification Type *</label>
-                    <select
-                      value={form.idType}
-                      onChange={e => handleIdTypeChange(e.target.value)}
-                      className="form-input"
-                      style={{ borderColor: errors.idType ? "#ef4444" : "", cursor: "pointer" }}
-                    >
-                      <option value="">Select ID type...</option>
-                      {ID_TYPES.map(o => <option key={o} value={o}>{o}</option>)}
-                    </select>
-                    {errors.idType && <span style={{ fontSize: 11, color: "#ef4444" }}>{errors.idType}</span>}
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? "rgba(248,250,252,0.55)" : "#475569" }}>ID Document Number *</label>
-                    <input
-                      type="text"
-                      value={form.idNumber}
-                      onChange={e => handleIdNumberChange(e.target.value)}
-                      placeholder={
-                        form.idType === 'Aadhaar' ? 'XXXX XXXX XXXX' : 
-                        form.idType === 'PAN Card' ? 'ABCDE1234F' : 
-                        form.idType === 'Voter ID' ? 'ABC1234567' : 
-                        'Enter ID number'
-                      }
-                      className="form-input"
-                      disabled={!form.idType}
-                      style={{ borderColor: errors.idNumber ? "#ef4444" : successes.idNumber ? "#10b981" : "" }}
-                    />
-                    {errors.idNumber && <span style={{ fontSize: 11, color: "#ef4444" }}>{errors.idNumber}</span>}
-                  </div>
-                </div>
-
-                {/* ID Proof Image */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                  <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? "rgba(248,250,252,0.55)" : "#475569" }}>Upload ID Proof (Image) *</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={e => {
-                      if (e.target.files && e.target.files[0]) {
-                        const file = e.target.files[0];
-                        const reader = new FileReader();
-                        reader.onloadend = () => setField("idProof", reader.result);
-                        reader.readAsDataURL(file);
-                      }
-                    }}
-                    className="form-input"
-                    style={{ borderColor: errors.idProof ? "#ef4444" : "", padding: "6px" }}
-                  />
-                  {errors.idProof && <span style={{ fontSize: 11, color: "#ef4444" }}>{errors.idProof}</span>}
-                  {form.idProof && <span style={{ fontSize: 11, color: "#10b981" }}>✓ ID proof uploaded</span>}
-                </div>
-
               </div>
+
+              {/* ID Proof Image */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? "rgba(248,250,252,0.55)" : "#475569" }}>Upload ID Proof (Image) *</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={e => {
+                    if (e.target.files && e.target.files[0]) {
+                      const file = e.target.files[0];
+                      const reader = new FileReader();
+                      reader.onloadend = () => setField("idProof", reader.result);
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                  className="form-input"
+                  style={{ borderColor: errors.idProof ? "#ef4444" : "", padding: "6px" }}
+                />
+                {errors.idProof && <span style={{ fontSize: 11, color: "#ef4444" }}>{errors.idProof}</span>}
+                {form.idProof && <span style={{ fontSize: 11, color: "#10b981" }}>✓ ID proof uploaded</span>}
+              </div>
+
             </div>
           </motion.div>
+        </div>
 
           {/* Visit details sub-section */}
           <motion.div variants={fadeUpBounce} style={{ padding: "2.5rem", background: isDark ? "#111827" : "#FFFFFF", borderRadius: 20, border: isDark ? "1px solid rgba(255,255,255,0.05)" : "1px solid rgba(15,23,42,0.05)", boxShadow: "0 10px 30px -10px rgba(0,0,0,0.1)" }}>

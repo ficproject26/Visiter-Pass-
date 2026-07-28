@@ -14,14 +14,27 @@ export function DataProvider({ children }) {
     try {
       if (!isBackground) setLoading(true);
       const [visRes, empRes, branchRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/visitors`),
-        fetch(`${API_BASE_URL}/api/employees`),
+        fetch(`${API_BASE_URL}/api/visitors`).catch(() => null),
+        fetch(`${API_BASE_URL}/api/employees`).catch(() => null),
         fetch(`${API_BASE_URL}/api/branches`).catch(() => null)
       ]);
       
-      const visData = await visRes.json();
-      const empData = await empRes.json();
-      const branchData = branchRes ? await branchRes.json() : [];
+      const parseJson = async (res) => {
+        if (!res || !res.ok) return [];
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          try {
+            return await res.json();
+          } catch (e) {
+            return [];
+          }
+        }
+        return [];
+      };
+
+      const visData = await parseJson(visRes);
+      const empData = await parseJson(empRes);
+      const branchData = await parseJson(branchRes);
       
       if (Array.isArray(visData)) setVisitors(visData);
       if (Array.isArray(empData)) setEmployees(empData);
