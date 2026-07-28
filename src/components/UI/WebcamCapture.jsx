@@ -155,23 +155,23 @@ export default function WebcamCapture({ onCapture, initialPhoto = null }) {
         </AnimatePresence>
 
         {photo ? (
-          <div className="relative w-full h-full">
-            <img src={photo} alt="Captured" className="w-full h-full object-cover" />
+          <div style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden" }}>
+            <img src={photo} alt="Captured" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
 
             {/* Success Checkmark Animation */}
             <motion.div
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", stiffness: 200, damping: 15 }}
-              className="absolute inset-0 flex items-center justify-center bg-teal-500/20 backdrop-blur-[2px]"
+              style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(20, 184, 166, 0.2)", backdropFilter: "blur(2px)" }}
             >
-              <div className="w-16 h-16 bg-teal-500 rounded-full flex items-center justify-center shadow-lg shadow-teal-500/50">
-                <span className="text-white text-3xl font-bold">✓</span>
+              <div style={{ width: "64px", height: "64px", backgroundColor: "#14b8a6", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 25px rgba(20, 184, 166, 0.5)" }}>
+                <span style={{ color: "#ffffff", fontSize: "28px", fontWeight: "bold" }}>✓</span>
               </div>
             </motion.div>
           </div>
         ) : cameraActive ? (
-          <div className="relative w-full h-full">
+          <div style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden" }}>
             <video
               ref={(node) => {
                 videoRef.current = node;
@@ -180,32 +180,20 @@ export default function WebcamCapture({ onCapture, initialPhoto = null }) {
                   node.play().catch(() => {});
                 }
               }}
-              className="w-full h-full object-cover -scale-x-100"
+              style={{ width: "100%", height: "100%", objectFit: "cover", transform: "scaleX(-1)" }}
               playsInline
               muted
               autoPlay
             />
 
             {/* Face Alignment Overlay */}
-            <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-              <div className="w-[85%] h-[85%] border-2 border-indigo-500/50 rounded-[40%] flex items-center justify-center relative mt-4">
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-indigo-500 text-white text-[10px] px-3 py-1 rounded-full uppercase tracking-wider font-bold shadow-lg">
+            <div style={{ position: "absolute", inset: 0, pointerEvents: "none", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: "80%", height: "80%", border: "2px solid rgba(99, 102, 241, 0.6)", borderRadius: "40%", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+                <div style={{ position: "absolute", top: "-12px", left: "50%", transform: "translateX(-50%)", backgroundColor: "#4f46e5", color: "#ffffff", fontSize: "10px", padding: "2px 10px", borderRadius: "9999px", textTransform: "uppercase", letterSpacing: "1px", fontWeight: "bold" }}>
                   Align Face
                 </div>
-                {/* Corner markers */}
-                <div className="absolute top-4 left-4 w-4 h-4 border-t-2 border-l-2 border-indigo-500" />
-                <div className="absolute top-4 right-4 w-4 h-4 border-t-2 border-r-2 border-indigo-500" />
-                <div className="absolute bottom-4 left-4 w-4 h-4 border-b-2 border-l-2 border-indigo-500" />
-                <div className="absolute bottom-4 right-4 w-4 h-4 border-b-2 border-r-2 border-indigo-500" />
               </div>
             </div>
-
-            {/* Scanning Line */}
-            <motion.div
-              animate={{ top: ["0%", "100%", "0%"] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-              className="absolute left-0 w-full h-[2px] bg-indigo-500 shadow-[0_0_10px_#6366f1] z-10 opacity-50"
-            />
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full p-6 text-center">
