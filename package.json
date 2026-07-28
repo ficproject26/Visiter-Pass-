@@ -9,9 +9,9 @@
   ],
   "scripts": {
     "dev": "turbo dev",
-    "build": "turbo build",
+    "build": "prisma generate --schema=./packages/database/prisma/schema.prisma && turbo build",
     "lint": "turbo lint",
-    "db:generate": "npm run db:generate --workspace=@vos/database"
+    "postinstall": "prisma generate --schema=./packages/database/prisma/schema.prisma"
   },
   "dependencies": {
     "@prisma/client": "^5.14.0",

@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "next dev -p 3002",
-    "build": "next build",
-    "start": "next start"
+    "build": "prisma generate --schema=../../packages/database/prisma/schema.prisma && next build",
+    "start": "next start",
+    "postinstall": "prisma generate --schema=../../packages/database/prisma/schema.prisma"
   },
   "dependencies": {
     "@vos/database": "*",

@@ -56,7 +56,7 @@ export default function AdminDashboard({ visitors: propVisitors, onNavigate: ext
 
   React.useEffect(() => {
     if (!authLoading && (!user || (user.role !== 'admin' && user.role !== 'subadmin'))) {
-      router.replace("/admin-login");
+      router.replace("/login");
     }
   }, [user, authLoading, router]);
 
