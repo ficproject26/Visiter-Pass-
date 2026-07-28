@@ -10,9 +10,9 @@ export function DataProvider({ children }) {
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchLiveDatas = async () => {
+  const fetchLiveDatas = async (isBackground = false) => {
     try {
-      setLoading(true);
+      if (!isBackground) setLoading(true);
       const [visRes, empRes, branchRes] = await Promise.all([
         fetch(`${API_BASE_URL}/api/visitors`),
         fetch(`${API_BASE_URL}/api/employees`),
@@ -29,16 +29,23 @@ export function DataProvider({ children }) {
     } catch (err) {
       console.error("Failed to fetch live datas:", err);
     } finally {
-      setLoading(false);
+      if (!isBackground) setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchLiveDatas();
+    fetchLiveDatas(false);
+
+    // Polling every 4 seconds for real-time updates on admin approval queue
+    const interval = setInterval(() => {
+      fetchLiveDatas(true);
+    }, 4000);
+
+    return () => clearInterval(interval);
   }, []);
 
   return (
-    <DataContext.Provider value={{ visitors, employees, branches, loading, refreshData: fetchLiveDatas }}>
+    <DataContext.Provider value={{ visitors, employees, branches, loading, refreshData: () => fetchLiveDatas(false) }}>
       {children}
     </DataContext.Provider>
   );
