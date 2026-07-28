@@ -17,9 +17,17 @@ export default function HRDashboard({ visitors: propVisitors = [], onUpdate, onN
     else router.push(`/${target}`);
   });
 
-  const { isDark } = useTheme();
-  const { user, logout } = useAuth();
+  const { user, logout, loading: authLoading } = useAuth();
+
+  React.useEffect(() => {
+    if (!authLoading && (!user || (user.role !== 'hr' && user.role !== 'employee' && user.role !== 'staff'))) {
+      router.replace("/staff-login");
+    }
+  }, [user, authLoading, router]);
+
   const { visitors: contextVisitors } = useData();
+
+  if (!user && !authLoading) return null;
 
   // Combine live visitors from props or DataContext
   const allVisitors = (propVisitors && propVisitors.length > 0) ? propVisitors : (contextVisitors || []);

@@ -5,7 +5,7 @@ import SecurityDashboard from "../../src/components/Admin/SecurityDashboard";
 
 export default function Page() {
   return (
-    <ProtectedRoute allowedRoles={['security', 'gate', 'guard', 'admin', 'subadmin']} fallbackUrl="/security-login">
+    <ProtectedRoute allowedRoles={['security', 'gate', 'guard']} fallbackUrl="/security-login">
       <SecurityDashboard />
     </ProtectedRoute>
   );

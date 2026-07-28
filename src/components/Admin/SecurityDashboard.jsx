@@ -14,7 +14,7 @@ export default function SecurityDashboard({ onNavigate: externalOnNavigate }) {
   const { user, logout, loading: authLoading } = useAuth();
 
   React.useEffect(() => {
-    if (!authLoading && (!user || (user.role !== 'security' && user.role !== 'gate' && user.role !== 'guard' && user.role !== 'admin' && user.role !== 'subadmin'))) {
+    if (!authLoading && (!user || (user.role !== 'security' && user.role !== 'gate' && user.role !== 'guard'))) {
       router.replace("/security-login");
     }
   }, [user, authLoading, router]);
