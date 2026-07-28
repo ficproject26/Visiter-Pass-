@@ -39,9 +39,8 @@ export default function RegistrationForm({ onNavigate: externalOnNavigate, onNew
       .filter(d => d && !adminRoles.includes(d.toLowerCase()))
   )].sort();
 
-  // Office Location / Branch options come from Database branches, falling back to default BRANCHES list
-  const dbBranchNames = branches.map(b => b.name).filter(Boolean);
-  const dynamicBranches = dbBranchNames.length > 0 ? [...new Set(dbBranchNames)].sort() : BRANCHES;
+  // Office Location / Branch options come strictly from Admin-created branches in Database
+  const dynamicBranches = [...new Set(branches.map(b => b.name).filter(Boolean))].sort();
   const dynamicHosts = employees.map(e => e.name).sort();
 
   const setField = (key, value) => {
@@ -476,7 +475,7 @@ export default function RegistrationForm({ onNavigate: externalOnNavigate, onNew
                   className="form-input"
                   style={{ borderColor: errors.branch ? "#ef4444" : "", cursor: "pointer" }}
                 >
-                  <option value="">Select location / branch...</option>
+                  <option value="">{dynamicBranches.length === 0 ? "No branches created by Admin yet" : "Select location / branch..."}</option>
                   {dynamicBranches.map(o => <option key={o} value={o}>{o}</option>)}
                 </select>
                 {errors.branch && <span style={{ fontSize: 11, color: "#ef4444" }}>{errors.branch}</span>}

@@ -131,7 +131,7 @@ export default function SuperAdminDashboardOverview({ setActiveTab }) {
       <div className="metrics-grid">
         <MetricCard onClick={() => setActiveTab?.("visitor_logbook")} title="Total Visitors" value={totalVisitors} subtitle="Live" icon={Users} color="#4f46e5" isDark={isDark} />
         <MetricCard onClick={() => setActiveTab?.("active_visitors")} title="Active Passes" value={activePasses} subtitle="Live" icon={CheckCircle} color="#10b981" isDark={isDark} />
-        <MetricCard onClick={() => setActiveTab?.("all_branches")} title="Total Branches" value={totalBranches} subtitle="Active" icon={Building2} color="#0ea5e9" isDark={isDark} />
+        <MetricCard onClick={() => setActiveTab?.("branch_management")} title="Total Branches" value={totalBranches} subtitle="Active" icon={Building2} color="#0ea5e9" isDark={isDark} />
         <MetricCard onClick={() => setActiveTab?.("reports_analytics")} title="Monthly MRR" value="₹0" subtitle="No Config" icon={DollarSign} color="#f59e0b" isDark={isDark} />
         
         <MetricCard onClick={() => setActiveTab?.("visitor_logbook")} title="Today's Traffic" value={todayVisitors} subtitle="Today" icon={Clock} color="#8b5cf6" isDark={isDark} />

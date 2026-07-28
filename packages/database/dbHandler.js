@@ -150,87 +150,112 @@ export async function getVisitors() {
 }
 
 export async function createVisitor(data) {
-  const visitorId = data.id || data.visitorId || `V${Math.floor(Math.random() * 900) + 100}`;
-  
-  const newRecord = {
-    id: visitorId,
-    visitorId: visitorId,
-    visitorType: data.visitorType || 'Guest Visitor',
-    fullName: data.fullName || '',
-    email: data.email || '',
-    phone: data.phone || '',
-    gender: data.gender || 'Male',
-    idType: data.idType || '',
-    idNumber: data.idNumber || '',
-    idProofUrl: data.idProof || null,
-    photoUrl: data.photo || null,
-    purpose: data.purpose || '',
-    interviewDomain: data.interviewDomain || data.companyName || '',
-    interviewRole: data.interviewRole || data.positionApplied || '',
-    personToMeet: data.personToMeet || '',
-    department: data.department || '',
-    branch: data.branch || '',
-    visitDate: data.visitDate || new Date().toISOString().slice(0, 10),
-    checkInTime: data.checkInTime || '',
-    checkOutTime: data.checkOutTime || null,
-    vehicleNumber: data.vehicleNumber || null,
-    companyName: data.companyName || data.interviewDomain || null,
-    positionApplied: data.positionApplied || data.interviewRole || null,
-    status: (data.status || 'PENDING').toUpperCase().replace(/-/g, '_'),
-    approvalStatus: (data.approvalStatus || 'PENDING').toUpperCase().replace(/-/g, '_'),
-    arrivedAtGate: data.arrivedAtGate !== undefined ? Boolean(data.arrivedAtGate) : false,
-    createdAt: new Date().toISOString()
-  };
-
-  const visitors = readJsonFile('visitors.json', []);
-  visitors.unshift(newRecord);
-  writeJsonFile('visitors.json', visitors);
-
   try {
-    const tenantId = await getOrCreateTenantId();
-    const parsedDate = data.visitDate ? new Date(data.visitDate) : new Date();
+    const visitorId = data.id || data.visitorId || `V${Math.floor(Math.random() * 900) + 100}`;
+    
+    const newRecord = {
+      id: visitorId,
+      visitorId: visitorId,
+      visitorType: data.visitorType || 'Guest Visitor',
+      fullName: data.fullName || '',
+      email: data.email || '',
+      phone: data.phone || '',
+      gender: data.gender || 'Male',
+      idType: data.idType || 'Aadhaar',
+      idNumber: data.idNumber || '',
+      idProofUrl: data.idProof || null,
+      photoUrl: data.photo || null,
+      purpose: data.purpose || 'Meeting',
+      interviewDomain: data.interviewDomain || data.companyName || '',
+      interviewRole: data.interviewRole || data.positionApplied || '',
+      personToMeet: data.personToMeet || 'Branch Admin',
+      department: data.department || 'General',
+      branch: data.branch || 'Main Location',
+      visitDate: data.visitDate || new Date().toISOString().slice(0, 10),
+      checkInTime: data.checkInTime || '',
+      checkOutTime: data.checkOutTime || null,
+      vehicleNumber: data.vehicleNumber || null,
+      companyName: data.companyName || data.interviewDomain || null,
+      positionApplied: data.positionApplied || data.interviewRole || null,
+      status: 'PENDING',
+      approvalStatus: 'PENDING',
+      arrivedAtGate: data.arrivedAtGate !== undefined ? Boolean(data.arrivedAtGate) : false,
+      createdAt: new Date().toISOString()
+    };
 
-    const dbCreated = await prisma.visitor.create({
-      data: {
-        visitorId: visitorId,
-        tenantId: tenantId,
-        visitorType: data.visitorType || 'Guest Visitor',
-        fullName: data.fullName || '',
-        email: data.email || '',
-        phone: data.phone || '',
-        gender: data.gender || 'Male',
-        idType: data.idType || '',
-        idNumber: data.idNumber || '',
-        idProofUrl: data.idProof || null,
-        photoUrl: data.photo || null,
-        purpose: data.purpose || '',
-        personToMeet: data.personToMeet || '',
-        department: data.department || '',
-        branch: data.branch || '',
-        visitDate: parsedDate,
-        checkInTime: data.checkInTime || '',
-        checkOutTime: null,
-        vehicleNumber: data.vehicleNumber || null,
-        companyName: data.companyName || data.interviewDomain || null,
-        positionApplied: data.positionApplied || data.interviewRole || null,
-        meetingAgenda: data.meetingAgenda || null,
-        status: (data.status || 'PENDING').toUpperCase().replace(/-/g, '_'),
-        approvalStatus: (data.approvalStatus || 'PENDING').toUpperCase().replace(/-/g, '_'),
-        arrivedAtGate: data.arrivedAtGate !== undefined ? Boolean(data.arrivedAtGate) : false
+    const visitors = readJsonFile('visitors.json', []);
+    visitors.unshift(newRecord);
+    writeJsonFile('visitors.json', visitors);
+
+    try {
+      const tenantId = await getOrCreateTenantId();
+      const rawDate = data.visitDate ? new Date(data.visitDate) : new Date();
+      const parsedDate = isNaN(rawDate.getTime()) ? new Date() : rawDate;
+
+      // Strict Prisma Enum validation mapping
+      let statusEnum = 'PENDING';
+      const statusStr = String(data.status || '').toUpperCase();
+      if (statusStr.includes('CHECKED_IN') || statusStr.includes('CHECKIN')) statusEnum = 'CHECKED_IN';
+      else if (statusStr.includes('CHECKED_OUT') || statusStr.includes('CHECKOUT')) statusEnum = 'CHECKED_OUT';
+
+      let approvalStatusEnum = 'PENDING';
+      const approvalStr = String(data.approvalStatus || '').toUpperCase();
+      if (approvalStr.includes('APPROV')) approvalStatusEnum = 'APPROVED';
+      else if (approvalStr.includes('REJECT')) approvalStatusEnum = 'REJECTED';
+
+      const dbCreated = await withTimeout(prisma.visitor.create({
+        data: {
+          visitorId: visitorId,
+          tenantId: tenantId,
+          visitorType: data.visitorType || 'Guest Visitor',
+          fullName: data.fullName || '',
+          email: data.email || '',
+          phone: data.phone || '',
+          gender: data.gender || 'Male',
+          idType: data.idType || 'Aadhaar',
+          idNumber: data.idNumber || '',
+          idProofUrl: data.idProof || null,
+          photoUrl: data.photo || null,
+          purpose: data.purpose || 'Meeting',
+          personToMeet: data.personToMeet || 'Branch Admin',
+          department: data.department || 'General',
+          branch: data.branch || 'Main Location',
+          visitDate: parsedDate,
+          checkInTime: data.checkInTime || '',
+          checkOutTime: null,
+          vehicleNumber: data.vehicleNumber || null,
+          companyName: data.companyName || data.interviewDomain || null,
+          positionApplied: data.positionApplied || data.interviewRole || null,
+          meetingAgenda: data.meetingAgenda || null,
+          status: statusEnum,
+          approvalStatus: approvalStatusEnum,
+          arrivedAtGate: data.arrivedAtGate !== undefined ? Boolean(data.arrivedAtGate) : false
+        }
+      }), 4000).catch(err => {
+        console.error("Prisma visitor.create error:", err.message);
+        return null;
+      });
+
+      if (dbCreated) {
+        console.log("Successfully persisted visitor in MongoDB Atlas:", dbCreated.visitorId);
       }
-    }).catch(err => {
-      console.error("Prisma visitor.create error:", err.message);
-      return null;
-    });
-
-    if (dbCreated) {
-      console.log("Successfully persisted visitor in MongoDB Atlas:", dbCreated.visitorId);
+    } catch (err) {
+      console.error("MongoDB Atlas insertion exception:", err.message);
     }
-  } catch (err) {
-    console.error("MongoDB Atlas insertion exception:", err.message);
-  }
 
-  return newRecord;
+    return newRecord;
+  } catch (outerErr) {
+    console.error("Fatal createVisitor error:", outerErr);
+    const fallbackId = `V${Math.floor(Math.random() * 900) + 100}`;
+    return {
+      id: fallbackId,
+      visitorId: fallbackId,
+      fullName: data.fullName || 'Visitor',
+      status: 'PENDING',
+      approvalStatus: 'PENDING',
+      createdAt: new Date().toISOString()
+    };
+  }
 }
 
 export async function updateVisitor(id, updates) {
