@@ -86,14 +86,23 @@ export default function UnifiedLogin({ initialRole = 'admin', hideTabs = false }
 
   return (
     <div
-      className="min-h-screen flex flex-col font-sans relative overflow-hidden"
       style={{
+        minHeight: "100vh",
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        position: "relative",
+        overflow: "hidden",
+        padding: "20px",
+        boxSizing: "border-box",
         background: 'radial-gradient(ellipse at 50% 30%, #1e1b4b 0%, #0f172a 60%, #020617 100%)',
       }}
     >
       {/* Centered Login Card */}
-      <main className="relative z-10 flex-1 flex items-center justify-center p-[16px]">
-        <div className="auth-card" style={{ maxWidth: 440, width: "100%", borderRadius: 24, padding: "2.25rem 2rem", background: "white", boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)" }}>
+      <main style={{ position: "relative", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center", width: "100%", margin: "auto", padding: "16px", boxSizing: "border-box" }}>
+        <div className="auth-card" style={{ maxWidth: 440, width: "100%", borderRadius: 24, padding: "2.25rem 2rem", background: "white", boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)", margin: "0 auto" }}>
           
           {/* Portal Switcher Tabs (Only if hideTabs is false) */}
           {!hideTabs && (
