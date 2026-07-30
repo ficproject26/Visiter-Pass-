@@ -7,49 +7,11 @@ export async function POST(req) {
     const { email, password } = await req.json();
     const cleanEmail = String(email || '').trim().toLowerCase();
 
-    const isSuperAdmin = cleanEmail === 'superadmin@visitoros.com';
-    const isSuperAdminPassword = isSuperAdmin && (password === 'super123' || password === 'super123123');
-
-    // Fast-path instant auth for Super Admin (1ms response, async DB sync)
-    if (isSuperAdminPassword) {
-      prisma.employee.findFirst({
-        where: { email: { equals: cleanEmail, mode: 'insensitive' } }
-      }).then(async (emp) => {
-        if (!emp) {
-          await prisma.employee.create({
-            data: {
-              empId: 'E-SUPER',
-              name: 'Super Admin',
-              email: 'superadmin@visitoros.com',
-              password: password,
-              role: 'admin',
-              department: 'Admin',
-              location: 'all',
-              status: 'active'
-            }
-          }).catch(() => null);
-        } else if (emp.password !== password) {
-          await prisma.employee.update({
-            where: { id: emp.id },
-            data: { password: password }
-          }).catch(() => null);
-        }
-      }).catch(() => null);
-
-      return NextResponse.json({
-        email: cleanEmail,
-        name: 'Super Admin',
-        role: 'admin',
-        branch: 'all',
-        empId: 'E-SUPER'
-      });
-    }
-
     // 1. Check merged employees list (file cache + DB)
     const allEmployees = await getEmployees().catch(() => []);
     let employee = allEmployees.find(e => (e.email || '').trim().toLowerCase() === cleanEmail);
 
-    if (employee && employee.password === password) {
+    if (employee && (employee.password === password || (cleanEmail === 'superadmin@visitoros.com' && (password === 'super123' || password === 'super123123')))) {
       let appRole = 'hr'; 
       const deptLower = (employee.department || '').toLowerCase();
       const roleLower = (employee.role || '').toLowerCase();
@@ -88,7 +50,9 @@ export async function POST(req) {
     }
 
     // 3. Mock Fallback accounts
-    if (cleanEmail === 'subadmin@visitoros.com' && password === 'sub123') {
+    if (cleanEmail === 'superadmin@visitoros.com' && (password === 'super123' || password === 'super123123')) {
+      return NextResponse.json({ email: cleanEmail, role: 'admin', branch: 'all', name: 'Super Admin' });
+    } else if (cleanEmail === 'subadmin@visitoros.com' && password === 'sub123') {
       return NextResponse.json({ email: cleanEmail, role: 'subadmin', branch: 'Bangalore', name: 'Bangalore Admin' });
     } else if (cleanEmail === 'subadmin_chennai@visitoros.com' && password === 'sub123') {
       return NextResponse.json({ email: cleanEmail, role: 'subadmin', branch: 'Chennai', name: 'Chennai Admin' });

@@ -78,50 +78,47 @@ async function getOrCreateTenantId() {
 
 export async function getVisitors() {
   const fileVisitors = readJsonFile('visitors.json', []);
-
-  const dbPromise = prisma.visitor.findMany({
-    select: {
-      id: true,
-      visitorId: true,
-      tenantId: true,
-      visitorType: true,
-      fullName: true,
-      email: true,
-      phone: true,
-      gender: true,
-      idType: true,
-      idNumber: true,
-      purpose: true,
-      personToMeet: true,
-      department: true,
-      branch: true,
-      visitDate: true,
-      checkInTime: true,
-      checkOutTime: true,
-      vehicleNumber: true,
-      companyName: true,
-      positionApplied: true,
-      interviewDomain: true,
-      interviewRole: true,
-      meetingAgenda: true,
-      status: true,
-      approvalStatus: true,
-      riskScore: true,
-      arrivedAtGate: true,
-      createdAt: true,
-      updatedAt: true
-    }
-  }).catch(() => []);
-
-  const fastDb = await Promise.race([
-    dbPromise,
-    new Promise(resolve => setTimeout(() => resolve(null), 800))
-  ]);
-
   let dbVisitors = [];
-  if (Array.isArray(fastDb) && fastDb.length > 0) {
-    dbVisitors = fastDb.map(v => ({ ...v, id: v.visitorId || v.id }));
-  }
+
+  try {
+    const fetched = await prisma.visitor.findMany({
+      select: {
+        id: true,
+        visitorId: true,
+        tenantId: true,
+        visitorType: true,
+        fullName: true,
+        email: true,
+        phone: true,
+        gender: true,
+        idType: true,
+        idNumber: true,
+        purpose: true,
+        personToMeet: true,
+        department: true,
+        branch: true,
+        visitDate: true,
+        checkInTime: true,
+        checkOutTime: true,
+        vehicleNumber: true,
+        companyName: true,
+        positionApplied: true,
+        interviewDomain: true,
+        interviewRole: true,
+        meetingAgenda: true,
+        status: true,
+        approvalStatus: true,
+        riskScore: true,
+        arrivedAtGate: true,
+        createdAt: true,
+        updatedAt: true
+      }
+    }).catch(() => []);
+
+    if (Array.isArray(fetched) && fetched.length > 0) {
+      dbVisitors = fetched.map(v => ({ ...v, id: v.visitorId || v.id }));
+    }
+  } catch (err) {}
 
   const mergedMap = new Map();
   for (const v of fileVisitors) {
