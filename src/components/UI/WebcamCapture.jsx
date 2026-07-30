@@ -11,13 +11,96 @@ export default function WebcamCapture({ onCapture, initialPhoto = null }) {
   const [isCapturing, setIsCapturing] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
 
+  const [validationError, setValidationError] = useState(null);
+  const [isValidating, setIsValidating] = useState(false);
+
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
   const { isDark } = useTheme();
 
+  const validateImageCanvas = async (canvas) => {
+    const ctx = canvas.getContext("2d");
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    
+    let totalBrightness = 0;
+    let skinTonePixels = 0;
+    let colorVariance = 0;
+    const sampleStep = 16;
+    let sampleCount = 0;
+    let prevBrightness = -1;
+
+    for (let i = 0; i < data.length; i += sampleStep) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      
+      const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+      totalBrightness += brightness;
+      sampleCount++;
+
+      if (prevBrightness !== -1) {
+        colorVariance += Math.abs(brightness - prevBrightness);
+      }
+      prevBrightness = brightness;
+
+      if (r > 45 && g > 30 && b > 20 && r > g && r > b && (r - Math.min(g, b)) > 15) {
+        skinTonePixels++;
+      }
+    }
+
+    const avgBrightness = totalBrightness / sampleCount;
+    const avgVariance = colorVariance / sampleCount;
+    const skinPercentage = (skinTonePixels / sampleCount) * 100;
+
+    // 1. Dark photo / Hand covering camera check
+    if (avgBrightness < 45) {
+      return {
+        valid: false,
+        error: "⚠️ Camera is covered or photo is too dark. Please ensure good lighting and clear face visibility."
+      };
+    }
+
+    // 2. Covered camera or low detail check
+    if (avgVariance < 2.5 && skinPercentage < 5) {
+      return {
+        valid: false,
+        error: "⚠️ Camera appears obscured. Please position your face clearly in front of the camera."
+      };
+    }
+
+    // 3. Browser native FaceDetector API check (Chrome/Edge/Android)
+    if (typeof window !== "undefined" && "FaceDetector" in window) {
+      try {
+        const faceDetector = new window.FaceDetector({ fastMode: true, maxFaces: 5 });
+        const faces = await faceDetector.detect(canvas);
+        if (!faces || faces.length === 0) {
+          return {
+            valid: false,
+            error: "⚠️ No face detected. Please align your face inside the frame."
+          };
+        }
+        return { valid: true };
+      } catch (err) {
+        console.warn("Native FaceDetector fallback:", err);
+      }
+    }
+
+    // 4. Fallback skin tone & clarity heuristic
+    if (skinPercentage < 2 && avgBrightness < 65) {
+      return {
+        valid: false,
+        error: "⚠️ No face detected. Please ensure your face is clearly visible to the camera."
+      };
+    }
+
+    return { valid: true };
+  };
+
   const startCamera = useCallback(async () => {
     setPermissionError(null);
+    setValidationError(null);
     if (typeof window !== "undefined" && !window.isSecureContext && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
       setPermissionError("Camera access requires HTTPS or localhost on mobile. Please use 'Upload Photo' below.");
       return;
@@ -34,7 +117,6 @@ export default function WebcamCapture({ onCapture, initialPhoto = null }) {
           audio: false
         });
       } catch (firstErr) {
-        // Fallback for webcams that don't support facingMode or ideal dimensions
         stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
       }
       streamRef.current = stream;
@@ -74,7 +156,9 @@ export default function WebcamCapture({ onCapture, initialPhoto = null }) {
   const capturePhoto = () => {
     if (videoRef.current && canvasRef.current) {
       setIsCapturing(true);
-      setTimeout(() => {
+      setValidationError(null);
+      setIsValidating(true);
+      setTimeout(async () => {
         const video = videoRef.current;
         const canvas = canvasRef.current;
         const context = canvas.getContext("2d");
@@ -84,22 +168,49 @@ export default function WebcamCapture({ onCapture, initialPhoto = null }) {
 
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
+        const validation = await validateImageCanvas(canvas);
+        setIsValidating(false);
+        setIsCapturing(false);
+
+        if (!validation.valid) {
+          setValidationError(validation.error);
+          return;
+        }
+
         const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
         setPhoto(dataUrl);
         onCapture(dataUrl);
         stopCamera();
-        setIsCapturing(false);
-      }, 300); // 300ms capture flash animation
+      }, 300);
     }
   };
 
   const processFile = (file) => {
     if (file && file.type.startsWith('image/')) {
+      setValidationError(null);
+      setIsValidating(true);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPhoto(reader.result);
-        onCapture(reader.result);
-        stopCamera();
+        const img = new Image();
+        img.onload = async () => {
+          const canvas = canvasRef.current || document.createElement("canvas");
+          canvas.width = img.width || 400;
+          canvas.height = img.height || 400;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+          const validation = await validateImageCanvas(canvas);
+          setIsValidating(false);
+          if (!validation.valid) {
+            setValidationError(validation.error);
+            return;
+          }
+
+          setPhoto(reader.result);
+          onCapture(reader.result);
+          stopCamera();
+        };
+        img.src = reader.result;
       };
       reader.readAsDataURL(file);
     }
@@ -119,6 +230,7 @@ export default function WebcamCapture({ onCapture, initialPhoto = null }) {
 
   const clearPhoto = () => {
     setPhoto(null);
+    setValidationError(null);
     onCapture(null);
     startCamera();
   };
@@ -333,6 +445,28 @@ export default function WebcamCapture({ onCapture, initialPhoto = null }) {
           </div>
         )}
       </div>
+
+      {validationError && (
+        <motion.div
+          initial={{ opacity: 0, y: -5 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{
+            backgroundColor: "rgba(239, 68, 68, 0.12)",
+            border: "1px solid rgba(239, 68, 68, 0.3)",
+            color: "#ef4444",
+            padding: "8px 14px",
+            borderRadius: "12px",
+            fontSize: "12px",
+            fontWeight: 600,
+            textAlign: "center",
+            maxWidth: "260px",
+            lineHeight: 1.4,
+            boxShadow: "0 4px 12px rgba(239, 68, 68, 0.1)"
+          }}
+        >
+          {validationError}
+        </motion.div>
+      )}
 
       {permissionError && (
         <div className="flex flex-col items-center gap-3 mt-3 w-full max-w-[340px] px-2">

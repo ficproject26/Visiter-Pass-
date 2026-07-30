@@ -26,6 +26,7 @@ export default function RegistrationForm({ onNavigate: externalOnNavigate, onNew
   });
   const [errors, setErrors] = useState({});
   const [successes, setSuccesses] = useState({});
+  const [idProofFileName, setIdProofFileName] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [newVisitor, setNewVisitor] = useState(null);
   const { isDark } = useTheme();
@@ -48,13 +49,30 @@ export default function RegistrationForm({ onNavigate: externalOnNavigate, onNew
     if (errors[key]) setErrors(prev => ({ ...prev, [key]: null }));
   };
 
+  const isValidMobileNumber = (num) => {
+    if (!num) return false;
+    const clean = num.replace(/\D/g, '');
+    if (clean.length !== 10) return false;
+    if (/^(\d)\1{9}$/.test(clean)) return false;
+    if (!/^[6-9]\d{9}$/.test(clean)) return false;
+    return true;
+  };
+
   const handlePhoneChange = (key, value) => {
     const val = value.replace(/\D/g, '').slice(0, 10);
     setField(key, val);
-    if (val.length === 10) {
+    if (isValidMobileNumber(val)) {
       setSuccesses(prev => ({ ...prev, [key]: true }));
+      setErrors(prev => ({ ...prev, [key]: null }));
     } else {
       setSuccesses(prev => ({ ...prev, [key]: false }));
+      if (val.length === 10) {
+        if (/^(\d)\1{9}$/.test(val)) {
+          setErrors(prev => ({ ...prev, [key]: "Invalid number (cannot be all same digits)" }));
+        } else if (!/^[6-9]/.test(val)) {
+          setErrors(prev => ({ ...prev, [key]: "Mobile number must start with 6, 7, 8, or 9" }));
+        }
+      }
     }
   };
 
@@ -118,14 +136,97 @@ export default function RegistrationForm({ onNavigate: externalOnNavigate, onNew
   const handleIdTypeChange = (value) => {
     setField('idType', value);
     setField('idNumber', '');
-    setSuccesses(prev => ({ ...prev, idNumber: false, idType: true }));
+    setField('idProof', null);
+    setIdProofFileName('');
+    setSuccesses(prev => ({ ...prev, idNumber: false, idProof: false, idType: true }));
+  };
+
+  const validateIdProofFile = (file, dataUrl) => {
+    const filename = (file.name || '').toLowerCase();
+
+    // 1. Filename Anti-Spoofing check (e.g. VisitorPass_..., pass_, badge, qrcode, etc.)
+    const invalidKeywords = ['visitorpass', 'visitor_pass', 'visitor-pass', 'pass_', 'badge', 'qrcode', 'qr_code', 'selfie', 'avatar'];
+    if (invalidKeywords.some(kw => filename.includes(kw))) {
+      return {
+        valid: false,
+        error: `⚠️ "${file.name}" appears to be a Visitor Pass / Badge image. Please upload a genuine photo/scan of your ${form.idType || 'Aadhaar / PAN / DL / Passport'}.`
+      };
+    }
+
+    // 2. Duplicate selfie check
+    if (form.photo && dataUrl && form.photo === dataUrl) {
+      return {
+        valid: false,
+        error: "⚠️ ID Proof cannot be identical to your Live Camera Photo. Please upload a photo/scan of your official ID document."
+      };
+    }
+
+    // 3. Image dimension & quality check
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        if (img.width < 120 || img.height < 120) {
+          resolve({
+            valid: false,
+            error: "⚠️ Image resolution too small. Please upload a clear photo or scan of your ID document."
+          });
+        } else {
+          resolve({ valid: true });
+        }
+      };
+      img.onerror = () => resolve({ valid: false, error: "⚠️ Invalid image file." });
+      img.src = dataUrl;
+    });
+  };
+
+  const handleIdProofChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const dataUrl = reader.result;
+        const validation = await validateIdProofFile(file, dataUrl);
+        if (!validation.valid) {
+          setField("idProof", null);
+          setIdProofFileName(file.name);
+          setErrors(prev => ({ ...prev, idProof: validation.error }));
+          setSuccesses(prev => ({ ...prev, idProof: false }));
+        } else {
+          setField("idProof", dataUrl);
+          setIdProofFileName(file.name);
+          setErrors(prev => ({ ...prev, idProof: null }));
+          setSuccesses(prev => ({ ...prev, idProof: true }));
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const validate = () => {
     const e = {};
     if (!form.fullName.trim()) e.fullName = "Full name is required";
-    if (!/^\d{10}$/.test(form.phone)) e.phone = "Enter a valid 10-digit phone number";
-    if (form.emergencyContact && !/^\d{10}$/.test(form.emergencyContact)) e.emergencyContact = "Enter a valid 10-digit emergency contact";
+
+    if (!form.phone || !isValidMobileNumber(form.phone)) {
+      if (!form.phone) {
+        e.phone = "Phone number is required";
+      } else if (/^(\d)\1{9}$/.test(form.phone)) {
+        e.phone = "Invalid phone number (cannot be all zeros or repeated digits)";
+      } else if (!/^[6-9]/.test(form.phone)) {
+        e.phone = "Mobile number must start with 6, 7, 8, or 9";
+      } else {
+        e.phone = "Enter a valid 10-digit mobile number";
+      }
+    }
+
+    if (form.emergencyContact && !isValidMobileNumber(form.emergencyContact)) {
+      if (/^(\d)\1{9}$/.test(form.emergencyContact)) {
+        e.emergencyContact = "Invalid emergency contact (cannot be all zeros or repeated digits)";
+      } else if (!/^[6-9]/.test(form.emergencyContact)) {
+        e.emergencyContact = "Emergency contact must start with 6, 7, 8, or 9";
+      } else {
+        e.emergencyContact = "Enter a valid 10-digit emergency contact";
+      }
+    }
     if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Valid email is required";
 
     if (!form.idType) e.idType = "Select an ID type";
@@ -384,24 +485,26 @@ export default function RegistrationForm({ onNavigate: externalOnNavigate, onNew
               </div>
 
               {/* ID Proof Image */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 <label style={{ fontSize: 12, fontWeight: 600, color: isDark ? "rgba(248,250,252,0.55)" : "#475569" }}>Upload ID Proof (Image) *</label>
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={e => {
-                    if (e.target.files && e.target.files[0]) {
-                      const file = e.target.files[0];
-                      const reader = new FileReader();
-                      reader.onloadend = () => setField("idProof", reader.result);
-                      reader.readAsDataURL(file);
-                    }
-                  }}
+                  onChange={handleIdProofChange}
                   className="form-input"
-                  style={{ borderColor: errors.idProof ? "#ef4444" : "", padding: "6px" }}
+                  style={{ borderColor: errors.idProof ? "#ef4444" : successes.idProof ? "#10b981" : "", padding: "6px" }}
                 />
-                {errors.idProof && <span style={{ fontSize: 11, color: "#ef4444" }}>{errors.idProof}</span>}
-                {form.idProof && <span style={{ fontSize: 11, color: "#10b981" }}>✓ ID proof uploaded</span>}
+                {errors.idProof && (
+                  <span style={{ fontSize: 11, color: "#ef4444", fontWeight: 600, lineHeight: 1.4, marginTop: 2 }}>
+                    {errors.idProof}
+                  </span>
+                )}
+                {form.idProof && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 2 }}>
+                    <span style={{ fontSize: 11, color: "#10b981", fontWeight: 700 }}>✓ Verified ID Proof Uploaded</span>
+                    {idProofFileName && <span style={{ fontSize: 11, color: isDark ? "#94a3b8" : "#64748b" }}>({idProofFileName})</span>}
+                  </div>
+                )}
               </div>
 
             </div>

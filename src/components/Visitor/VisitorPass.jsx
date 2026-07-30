@@ -28,20 +28,25 @@ export default function VisitorPass({ visitor, onNavigate: externalOnNavigate })
         await document.fonts.ready;
       }
       const canvas = await html2canvas(passEl, {
-        scale: 3,
+        scale: 4, // 4x HD sharpness resolution
         useCORS: true,
         allowTaint: true,
         backgroundColor: "#ffffff",
         scrollX: 0,
         scrollY: 0,
+        logging: false,
+        imageTimeout: 0,
         onclone: (clonedDoc) => {
           const clonedPass = clonedDoc.getElementById("printable-visitor-pass");
           if (clonedPass) {
             clonedPass.style.transform = "none";
-            const textEls = clonedPass.querySelectorAll("h3, div, span, p");
+            clonedPass.style.boxShadow = "none";
+            clonedPass.style.webkitFontSmoothing = "antialiased";
+            clonedPass.style.mozOsxFontSmoothing = "grayscale";
+            const textEls = clonedPass.querySelectorAll("*");
             textEls.forEach(el => {
-              el.style.overflow = "visible";
-              el.style.lineHeight = el.style.lineHeight || "1.35";
+              el.style.webkitFontSmoothing = "antialiased";
+              el.style.textRendering = "geometricPrecision";
             });
           }
         }
@@ -101,6 +106,7 @@ export default function VisitorPass({ visitor, onNavigate: externalOnNavigate })
             justifyContent: "center",
             margin: "0 auto 1rem",
             fontSize: 32,
+            color: "#ffffff"
           }}
         >
           ✓
@@ -134,6 +140,7 @@ export default function VisitorPass({ visitor, onNavigate: externalOnNavigate })
           overflow: "hidden",
           background: "white",
           position: "relative",
+          boxShadow: "0 20px 40px -15px rgba(0,0,0,0.15)"
         }}
       >
         {/* ── LEFT accent stripe ── */}
@@ -152,7 +159,7 @@ export default function VisitorPass({ visitor, onNavigate: externalOnNavigate })
         {/* ── HEADER ── */}
         <div
           style={{
-            background: "linear-gradient(135deg, #0f172a 0%, #1e3a4a 100%)",
+            background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
             padding: "1.4rem 1.6rem 1.4rem 2rem",
             display: "flex",
             justifyContent: "space-between",
@@ -181,26 +188,26 @@ export default function VisitorPass({ visitor, onNavigate: externalOnNavigate })
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 6,
-                background: "rgba(13,148,136,0.2)",
-                border: "1px solid rgba(13,148,136,0.4)",
+                background: "#0f766e",
+                border: "1px solid #14b8a6",
                 borderRadius: 4,
-                padding: "2px 8px",
+                padding: "3px 10px",
                 marginBottom: 6,
               }}
             >
               <div
                 style={{
-                  width: 5,
-                  height: 5,
+                  width: 6,
+                  height: 6,
                   borderRadius: "50%",
                   background: "#2dd4bf",
                 }}
               />
               <span
                 style={{
-                  color: "#5eead4",
-                  fontSize: 9,
-                  fontWeight: 700,
+                  color: "#ffffff",
+                  fontSize: 10,
+                  fontWeight: 800,
                   letterSpacing: "1.5px",
                   textTransform: "uppercase",
                 }}
@@ -214,18 +221,19 @@ export default function VisitorPass({ visitor, onNavigate: externalOnNavigate })
           {/* Pass ID pill */}
           <div
             style={{
-              background: "rgba(13,148,136,0.15)",
-              border: "1.5px solid rgba(13,148,136,0.4)",
+              background: "#0f766e",
+              border: "1.5px solid #14b8a6",
               borderRadius: 8,
               padding: "6px 14px",
               position: "relative",
               zIndex: 1,
+              textAlign: "right"
             }}
           >
-            <div style={{ fontSize: 9, color: "#5eead4", fontWeight: 700, letterSpacing: "1px", marginBottom: 2 }}>
+            <div style={{ fontSize: 9, color: "#99f6e4", fontWeight: 800, letterSpacing: "1px", marginBottom: 2 }}>
               PASS ID
             </div>
-            <div style={{ color: "white", fontWeight: 800, fontSize: 15, letterSpacing: "1px" }}>
+            <div style={{ color: "#ffffff", fontWeight: 900, fontSize: 16, letterSpacing: "1px" }}>
               {visitor.id}
             </div>
           </div>
@@ -246,7 +254,7 @@ export default function VisitorPass({ visitor, onNavigate: externalOnNavigate })
                     height: 100,
                     borderRadius: 12,
                     overflow: "hidden",
-                    border: "2px solid #e2e8f0",
+                    border: "2px solid #cbd5e1",
                   }}
                 >
                   <img
@@ -265,7 +273,7 @@ export default function VisitorPass({ visitor, onNavigate: externalOnNavigate })
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    border: "2px solid #e2e8f0",
+                    border: "2px solid #cbd5e1",
                   }}
                 >
                   <span style={{ fontSize: 26, fontWeight: 900, color: "#2dd4bf", letterSpacing: "-1px" }}>
@@ -290,7 +298,7 @@ export default function VisitorPass({ visitor, onNavigate: externalOnNavigate })
               >
                 {visitor.fullName}
               </h3>
-              <div style={{ fontSize: 11, color: "#94a3b8", fontWeight: 600, marginBottom: 10, letterSpacing: "0.3px", lineHeight: "1.3" }}>
+              <div style={{ fontSize: 11, color: "#475569", fontWeight: 700, marginBottom: 10, letterSpacing: "0.3px", lineHeight: "1.3" }}>
                 {visitor.idType} · {visitor.idNumber}
               </div>
 
@@ -303,11 +311,11 @@ export default function VisitorPass({ visitor, onNavigate: externalOnNavigate })
                 ].map(({ icon, label, val }) => (
                   <div key={label} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, lineHeight: "1.4" }}>
                     <span style={{ fontSize: 11 }}>{icon}</span>
-                    <span style={{ color: "#94a3b8", fontWeight: 600, minWidth: 50 }}>{label}:</span>
+                    <span style={{ color: "#475569", fontWeight: 700, minWidth: 50 }}>{label}:</span>
                     <span
                       style={{
-                        color: "#1e293b",
-                        fontWeight: 600,
+                        color: "#0f172a",
+                        fontWeight: 700,
                         lineHeight: "1.4",
                         paddingBottom: "1px"
                       }}
@@ -322,9 +330,9 @@ export default function VisitorPass({ visitor, onNavigate: externalOnNavigate })
 
           {/* ── Divider with label ── */}
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: "1.25rem" }}>
-            <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg, transparent, #e2e8f0)" }} />
-            <span style={{ fontSize: 9, color: "#94a3b8", fontWeight: 700, letterSpacing: "1.5px" }}>CLEARANCE DETAILS</span>
-            <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg, #e2e8f0, transparent)" }} />
+            <div style={{ flex: 1, height: 1, background: "#cbd5e1" }} />
+            <span style={{ fontSize: 10, color: "#334155", fontWeight: 800, letterSpacing: "1.5px" }}>CLEARANCE DETAILS</span>
+            <div style={{ flex: 1, height: 1, background: "#cbd5e1" }} />
           </div>
 
           {/* ── Info grid + QR ── */}
@@ -339,7 +347,7 @@ export default function VisitorPass({ visitor, onNavigate: externalOnNavigate })
                 { label: "PHONE", val: visitor.phone, highlight: false },
               ].map(({ label, val }) => (
                 <div key={label}>
-                  <div style={{ fontSize: 8, color: "#94a3b8", fontWeight: 700, letterSpacing: "1px", marginBottom: 3, lineHeight: "1.2" }}>
+                  <div style={{ fontSize: 9, color: "#475569", fontWeight: 800, letterSpacing: "1px", marginBottom: 3, lineHeight: "1.2" }}>
                     {label}
                   </div>
                   <div
@@ -370,14 +378,14 @@ export default function VisitorPass({ visitor, onNavigate: externalOnNavigate })
               <div
                 style={{
                   padding: 8,
-                  border: "1.5px solid #e2e8f0",
+                  border: "2px solid #cbd5e1",
                   borderRadius: 10,
                   background: "white",
                 }}
               >
                 <QRCode value={qrValue} size={88} />
               </div>
-              <span style={{ fontSize: 8, color: "#94a3b8", fontWeight: 700, letterSpacing: "0.5px" }}>
+              <span style={{ fontSize: 9, color: "#334155", fontWeight: 800, letterSpacing: "0.5px" }}>
                 SCAN TO VERIFY
               </span>
             </div>

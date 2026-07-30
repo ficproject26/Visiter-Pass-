@@ -175,8 +175,8 @@ export default function PublicPassView() {
                 ].map(({ icon, label, val }) => (
                   <div key={label} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12 }}>
                     <span style={{ fontSize: 11 }}>{icon}</span>
-                    <span style={{ color: "#94a3b8", fontWeight: 600, minWidth: 50 }}>{label}:</span>
-                    <span style={{ color: "#1e293b", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{val}</span>
+                    <span style={{ color: "#475569", fontWeight: 700, minWidth: 50 }}>{label}:</span>
+                    <span style={{ color: "#0f172a", fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{val}</span>
                   </div>
                 ))}
               </div>
@@ -185,9 +185,9 @@ export default function PublicPassView() {
 
           {/* Divider */}
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: "1.25rem" }}>
-            <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg, transparent, #e2e8f0)" }} />
-            <span style={{ fontSize: 9, color: "#94a3b8", fontWeight: 700, letterSpacing: "1.5px" }}>CLEARANCE DETAILS</span>
-            <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg, #e2e8f0, transparent)" }} />
+            <div style={{ flex: 1, height: 1, background: "#cbd5e1" }} />
+            <span style={{ fontSize: 10, color: "#334155", fontWeight: 800, letterSpacing: "1.5px" }}>CLEARANCE DETAILS</span>
+            <div style={{ flex: 1, height: 1, background: "#cbd5e1" }} />
           </div>
 
           {/* Info + QR */}
@@ -200,16 +200,16 @@ export default function PublicPassView() {
                 { label: "PHONE",      val: visitor.phone },
               ].map(({ label, val }) => (
                 <div key={label}>
-                  <div style={{ fontSize: 8, color: "#94a3b8", fontWeight: 700, letterSpacing: "1px", marginBottom: 3 }}>{label}</div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{val}</div>
+                  <div style={{ fontSize: 9, color: "#475569", fontWeight: 800, letterSpacing: "1px", marginBottom: 3 }}>{label}</div>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{val}</div>
                 </div>
               ))}
             </div>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, flexShrink: 0 }}>
-              <div style={{ padding: 8, border: "1.5px solid #e2e8f0", borderRadius: 10, background: "white" }}>
+              <div style={{ padding: 8, border: "2px solid #cbd5e1", borderRadius: 10, background: "white" }}>
                 <QRCode value={`${window.location.origin}/pass/${visitor.id}`} size={88} />
               </div>
-              <span style={{ fontSize: 8, color: "#94a3b8", fontWeight: 700, letterSpacing: "0.5px" }}>SCAN TO VERIFY</span>
+              <span style={{ fontSize: 9, color: "#334155", fontWeight: 800, letterSpacing: "0.5px" }}>SCAN TO VERIFY</span>
             </div>
           </div>
         </div>
