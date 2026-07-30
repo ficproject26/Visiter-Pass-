@@ -103,11 +103,11 @@ export default function VisitorBookings({ onNewBooking }) {
       {/* Table */}
       <div style={{ ...glass, overflow: 'hidden' }}>
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table style={{ width: '100%', minWidth: 980, borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
               <tr style={{ background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)' }}>
                 {['Booking ID', 'Visitor', 'Host & Dept', 'Branch', 'Date & Time', 'Purpose', 'Category', 'Status', 'Actions'].map(h => (
-                  <th key={h} style={{ padding: '14px 20px', textAlign: 'left', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: isDark ? '#64748b' : '#94a3b8', whiteSpace: 'nowrap' }}>{h}</th>
+                  <th key={h} style={{ padding: '14px 16px', textAlign: 'left', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.6px', color: isDark ? '#94a3b8' : '#64748b', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -126,52 +126,52 @@ export default function VisitorBookings({ onNewBooking }) {
                       onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                     >
-                      <td style={{ padding: '16px 20px', fontSize: 12, fontWeight: 700, color: '#4f46e5' }}>{b.visitorId || b.id || 'VB-000'}</td>
-                      <td style={{ padding: '16px 20px' }}>
+                      <td style={{ padding: '14px 16px', fontSize: 12, fontWeight: 700, color: '#4f46e5', whiteSpace: 'nowrap' }}>{b.visitorId || b.id || 'VB-000'}</td>
+                      <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                           {b.photoUrl || b.photo ? (
-                            <img src={b.photoUrl || b.photo} alt={b.fullName || b.visitorName} style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', border: '1px solid #e2e8f0' }} />
+                            <img src={b.photoUrl || b.photo} alt={b.fullName || b.visitorName} style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', border: '1px solid #e2e8f0', flexShrink: 0 }} />
                           ) : (
-                            <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg, #ccfbf1, #c7d2fe)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4f46e5', fontWeight: 700, fontSize: 13, flexShrink: 0 }}>
+                            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, #ccfbf1, #c7d2fe)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4f46e5', fontWeight: 700, fontSize: 13, flexShrink: 0 }}>
                               {(b.fullName || b.visitorName || 'U').charAt(0)}
                             </div>
                           )}
                           <div>
                             <div style={{ fontWeight: 700, fontSize: 14, color: isDark ? '#f8fafc' : '#0f172a' }}>{b.fullName || b.visitorName}</div>
-                            <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#64748b', marginTop: 2 }}>{b.phoneNumber || b.visitorPhone || '--'}</div>
+                            <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#64748b', marginTop: 2 }}>{b.phone || b.phoneNumber || b.visitorPhone || '--'}</div>
                           </div>
                         </div>
                       </td>
-                      <td style={{ padding: '16px 20px' }}>
+                      <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
                         <div style={{ fontWeight: 600, fontSize: 13, color: isDark ? '#e2e8f0' : '#334155' }}>{b.personToMeet || b.host || 'Unknown'}</div>
                         <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#64748b', marginTop: 2 }}>{b.department || b.hostDept || '--'}</div>
                       </td>
-                      <td style={{ padding: '16px 20px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: isDark ? '#cbd5e1' : '#475569' }}>
-                          <MapPin size={13} /> {b.branch || '--'}
+                      <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: isDark ? '#cbd5e1' : '#475569' }}>
+                          <MapPin size={13} style={{ color: '#6366f1' }} /> {b.branch || '--'}
                         </div>
                       </td>
-                      <td style={{ padding: '16px 20px' }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: isDark ? '#e2e8f0' : '#334155', display: 'flex', alignItems: 'center', gap: 5 }}>
-                          <Calendar size={13} /> {b.visitDate || '--'}
+                      <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: isDark ? '#e2e8f0' : '#334155', display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' }}>
+                          <Calendar size={13} style={{ color: '#10b981' }} /> {b.visitDate || '--'}
                         </div>
-                        <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#64748b', marginTop: 3, display: 'flex', alignItems: 'center', gap: 5 }}>
-                          <Clock size={12} /> {b.visitTime || '--'}
+                        <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#64748b', marginTop: 3, display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' }}>
+                          <Clock size={12} /> {b.checkInTime || b.visitTime || '--'}
                         </div>
                       </td>
-                      <td style={{ padding: '16px 20px', fontSize: 13, color: isDark ? '#cbd5e1' : '#475569' }}>{b.purpose || '--'}</td>
-                      <td style={{ padding: '16px 20px' }}>
-                        <span style={{ background: isDark ? `${catColor}20` : `${catColor}15`, color: catColor, padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700 }}>{mappedCat}</span>
+                      <td style={{ padding: '14px 16px', fontSize: 13, color: isDark ? '#cbd5e1' : '#475569', whiteSpace: 'nowrap' }}>{b.purpose || '--'}</td>
+                      <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
+                        <span style={{ background: isDark ? `${catColor}20` : `${catColor}15`, color: catColor, padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap', display: 'inline-block' }}>{mappedCat}</span>
                       </td>
-                      <td style={{ padding: '16px 20px' }}>
-                        <span style={{ background: sc.bg, color: sc.color, padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5, width: 'fit-content' }}>
+                      <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
+                        <span style={{ background: sc.bg, color: sc.color, padding: '5px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap' }}>
                           <StatusIcon size={12} /> {sc.text}
                         </span>
                       </td>
-                      <td style={{ padding: '16px 20px' }}>
+                      <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
                         <button 
                           onClick={() => handleCancel(b.id || b.visitorId)}
-                          style={{ padding: '5px 10px', borderRadius: 8, border: 'none', background: 'rgba(239,68,68,0.1)', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 600 }}>
+                          style={{ padding: '6px 12px', borderRadius: 8, border: 'none', background: 'rgba(239,68,68,0.1)', color: '#ef4444', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 700 }}>
                           <Trash2 size={13} /> Cancel
                         </button>
                       </td>

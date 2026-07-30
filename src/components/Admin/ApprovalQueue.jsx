@@ -406,7 +406,7 @@ export default function ApprovalQueue() {
           </motion.div>
         ) : (
           <div style={{ width: '100%', overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <table style={{ width: '100%', minWidth: 980, borderCollapse: 'collapse', textAlign: 'left' }}>
               <thead>
                 <tr style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid #e2e8f0', background: isDark ? 'rgba(255,255,255,0.02)' : '#f8fafc' }}>
                   <th style={thStyle}>Visitor Name</th>
