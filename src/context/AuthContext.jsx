@@ -63,13 +63,19 @@ export const AuthProvider = ({ children }) => {
         body: JSON.stringify({ email, password })
       });
       
+      let data = {};
+      try {
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          data = await response.json();
+        }
+      } catch (e) {}
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Invalid email or password');
+        throw new Error(data.error || 'Invalid email or password');
       }
       
-      const rawData = await response.json();
-      const userData = { ...rawData, loginTime: Date.now() };
+      const userData = { ...data, loginTime: Date.now() };
       setUser(userData);
       localStorage.setItem('vos_session', JSON.stringify(userData));
       recordLoginSession(userData);

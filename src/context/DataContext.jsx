@@ -5,7 +5,16 @@ import { API_BASE_URL } from '../config/api';
 const DataContext = createContext();
 
 export function DataProvider({ children }) {
-  const [visitors, setVisitors] = useState([]);
+  const [visitors, setVisitors] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return JSON.parse(localStorage.getItem('visitoros_saved_visitors') || '[]');
+      } catch (e) {
+        return [];
+      }
+    }
+    return [];
+  });
   const [employees, setEmployees] = useState(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -55,7 +64,14 @@ export function DataProvider({ children }) {
       const empData = await parseJson(empRes);
       const branchData = await parseJson(branchRes);
       
-      if (Array.isArray(visData)) setVisitors(visData);
+      if (Array.isArray(visData) && visData.length > 0) {
+        setVisitors(visData);
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem('visitoros_saved_visitors', JSON.stringify(visData));
+          } catch (e) {}
+        }
+      }
       if (Array.isArray(empData) && empData.length > 0) {
         setEmployees(empData);
         if (typeof window !== 'undefined') {

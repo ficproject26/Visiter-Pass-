@@ -7,6 +7,8 @@ export {
   getBranches,
   createBranch,
   getEmployees,
-  createEmployee
+  createEmployee,
+  updateEmployee,
+  deleteEmployee
 } from './dbHandler.js';
 

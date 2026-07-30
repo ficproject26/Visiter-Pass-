@@ -46,10 +46,13 @@ export default function UnifiedLogin({ initialRole = 'admin', hideTabs = false }
       }
 
       // Successful portal authorization -> Redirect to unified secure /dashboard
-      router.push("/dashboard");
+      if (typeof window !== 'undefined') {
+        window.location.href = "/dashboard";
+      } else {
+        router.push("/dashboard");
+      }
     } catch (err) {
       setError(err.message || "Invalid email or password");
-    } finally {
       setLoading(false);
     }
   };

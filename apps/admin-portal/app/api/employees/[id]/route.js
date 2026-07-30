@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
-import { updateEmployee, deleteEmployee } from '../../../../lib/dbHandler';
+import { updateEmployee, deleteEmployee } from '@vos/database';
 
 export async function PATCH(req, { params }) {
   try {

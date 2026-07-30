@@ -103,9 +103,8 @@ export default function VisitorManagementOverview({ visitors: propVisitors, setA
   }).length;
 
   const pendingApprovals = visitors.filter(v => {
-    const a = (v.approvalStatus || '').toLowerCase();
-    const s = (v.status || '').toLowerCase().replace(/_/g, '-');
-    return a === 'pending' || s === 'pending';
+    const a = (v.approvalStatus || 'PENDING').toUpperCase();
+    return a === 'PENDING';
   }).length;
 
   const expiredPasses = visitors.filter(v => {

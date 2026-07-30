@@ -74,7 +74,7 @@ export default function SecurityDashboard({ onNavigate: externalOnNavigate }) {
 
   // Helper counts
   const checkedInCount = visitors.filter(v => (v.status || "").toUpperCase() === 'CHECKED-IN' || (v.status || "").toUpperCase() === 'CHECKED_IN').length;
-  const pendingCount = visitors.filter(v => (v.approvalStatus || "").toUpperCase() === 'PENDING' || (v.status || "").toUpperCase() === 'PENDING').length;
+  const pendingCount = visitors.filter(v => (v.approvalStatus || "PENDING").toUpperCase() === 'PENDING').length;
   const approvedCount = visitors.filter(v => (v.approvalStatus || "").toUpperCase() === 'APPROVED').length;
   const checkedOutCount = visitors.filter(v => (v.status || "").toUpperCase() === 'CHECKED-OUT' || (v.status || "").toUpperCase() === 'CHECKED_OUT').length;
 
