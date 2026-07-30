@@ -31,10 +31,11 @@ export function DataProvider({ children }) {
   const fetchLiveDatas = async (isBackground = false) => {
     try {
       if (!isBackground) setLoading(true);
+      const ts = Date.now();
       const [visRes, empRes, branchRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/visitors`).catch(() => null),
-        fetch(`${API_BASE_URL}/api/employees`).catch(() => null),
-        fetch(`${API_BASE_URL}/api/branches`).catch(() => null)
+        fetch(`${API_BASE_URL}/api/visitors?t=${ts}`, { cache: 'no-store' }).catch(() => null),
+        fetch(`${API_BASE_URL}/api/employees?t=${ts}`, { cache: 'no-store' }).catch(() => null),
+        fetch(`${API_BASE_URL}/api/branches?t=${ts}`, { cache: 'no-store' }).catch(() => null)
       ]);
       
       const parseJson = async (res) => {

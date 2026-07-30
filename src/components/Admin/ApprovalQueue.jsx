@@ -59,8 +59,13 @@ export default function ApprovalQueue() {
 
   const handleManualRefresh = async () => {
     setIsRefreshing(true);
-    await refreshData();
-    setTimeout(() => setIsRefreshing(false), 500);
+    setLocalProcessed([]);
+    try {
+      if (refreshData) await refreshData();
+    } catch (e) {
+      console.error("Error refreshing live queue:", e);
+    }
+    setTimeout(() => setIsRefreshing(false), 600);
   };
 
   // Branch Options
@@ -176,23 +181,32 @@ export default function ApprovalQueue() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           <button
             onClick={handleManualRefresh}
+            disabled={isRefreshing}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: 8,
               padding: '10px 16px',
               borderRadius: 12,
-              border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)',
-              background: isDark ? '#1e293b' : '#ffffff',
+              border: isDark ? '1px solid rgba(56,189,248,0.3)' : '1px solid #0284c7',
+              background: isDark ? 'rgba(56,189,248,0.1)' : 'rgba(2,132,199,0.06)',
               color: isDark ? '#38bdf8' : '#0284c7',
               fontWeight: 700,
               fontSize: 13,
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+              cursor: isRefreshing ? 'wait' : 'pointer',
+              opacity: isRefreshing ? 0.7 : 1,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+              transition: 'all 0.2s ease'
             }}
           >
-            <RefreshCw size={14} className={isRefreshing ? "animate-spin" : ""} />
-            <span>Refresh Live Queue</span>
+            <RefreshCw
+              size={15}
+              style={{
+                transform: isRefreshing ? 'rotate(360deg)' : 'rotate(0deg)',
+                transition: isRefreshing ? 'transform 0.6s linear' : 'none'
+              }}
+            />
+            <span>{isRefreshing ? 'Syncing...' : 'Refresh Live Queue'}</span>
           </button>
 
           <div style={{ display: 'flex', gap: 10 }}>
