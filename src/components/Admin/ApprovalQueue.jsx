@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { staggerContainer } from '../../utils/animations';
 import { useTheme } from '../../context/ThemeContext';
 import { useData } from '../../context/DataContext';
-import { ShieldAlert, CheckCircle2, XCircle, Clock, AlertTriangle, Search, RefreshCw, Filter, Calendar, MapPin } from 'lucide-react';
+import { ShieldAlert, CheckCircle2, XCircle, Clock, AlertTriangle, Search, RefreshCw, Calendar, MapPin } from 'lucide-react';
 import { API_BASE_URL } from '../../config/api';
 
 const riskConfig = {
@@ -16,17 +16,32 @@ const riskConfig = {
 const formatVisitDate = (dateStr) => {
   if (!dateStr) return 'Today';
   try {
-    const clean = String(dateStr).split('T')[0];
-    const parts = clean.split('-');
-    if (parts.length === 3) {
-      const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-      if (!isNaN(d.getTime())) {
-        return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-      }
+    const str = String(dateStr);
+    let d;
+    if (str.includes('T')) {
+      const dateOnly = str.split('T')[0];
+      const [year, month, day] = dateOnly.split('-').map(Number);
+      d = new Date(year, month - 1, day);
+    } else {
+      d = new Date(str);
     }
-    return clean;
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+    return dateStr;
   } catch (e) {
     return dateStr;
+  }
+};
+
+const formatAppliedDate = (dateStr) => {
+  if (!dateStr) return 'Just now';
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return 'Just now';
+    return d.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true });
+  } catch (e) {
+    return 'Just now';
   }
 };
 
@@ -137,6 +152,16 @@ export default function ApprovalQueue() {
     boxShadow: isDark ? '0 4px 24px rgba(0,0,0,0.25)' : '0 4px 24px rgba(148,163,184,0.1)',
   };
 
+  const thStyle = {
+    padding: '16px 20px',
+    fontSize: 11,
+    fontWeight: 800,
+    color: isDark ? '#94a3b8' : '#64748b',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    whiteSpace: 'nowrap'
+  };
+
   return (
     <motion.div variants={staggerContainer} initial="hidden" animate="visible"
       style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -206,7 +231,7 @@ export default function ApprovalQueue() {
         </div>
 
         {/* Filters Group */}
-        <div style={{ display: 'flex', items: 'center', gap: 10, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           {/* Status Filter */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: isDark ? 'rgba(255,255,255,0.05)' : '#f1f5f9', padding: '4px', borderRadius: 10 }}>
             {['PENDING', 'ALL', 'APPROVED', 'REJECTED'].map(st => (
@@ -297,12 +322,16 @@ export default function ApprovalQueue() {
           <div style={{ width: '100%', overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
               <thead>
-                <tr>
-                  <th style={{ padding: '16px 24px', fontSize: 12, fontWeight: 700, color: isDark ? '#64748b' : '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)' }}>Visitor Details</th>
-                  <th style={{ padding: '16px 24px', fontSize: 12, fontWeight: 700, color: isDark ? '#64748b' : '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)' }}>Host & Dept</th>
-                  <th style={{ padding: '16px 24px', fontSize: 12, fontWeight: 700, color: isDark ? '#64748b' : '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)' }}>Purpose / ID</th>
-                  <th style={{ padding: '16px 24px', fontSize: 12, fontWeight: 700, color: isDark ? '#64748b' : '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)' }}>Risk & Wait</th>
-                  <th style={{ padding: '16px 24px', fontSize: 12, fontWeight: 700, color: isDark ? '#64748b' : '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)', textAlign: 'right' }}>Actions</th>
+                <tr style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid #e2e8f0', background: isDark ? 'rgba(255,255,255,0.02)' : '#f8fafc' }}>
+                  <th style={thStyle}>Visitor Name</th>
+                  <th style={thStyle}>Applied Date</th>
+                  <th style={thStyle}>Visit Date</th>
+                  <th style={thStyle}>Branch</th>
+                  <th style={thStyle}>Department</th>
+                  <th style={thStyle}>Purpose / ID</th>
+                  <th style={thStyle}>Host</th>
+                  <th style={thStyle}>Risk & Wait</th>
+                  <th style={{ ...thStyle, textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -317,83 +346,102 @@ export default function ApprovalQueue() {
                        if (!isNaN(reqTime)) waitMin = Math.floor((new Date() - reqTime) / 60000);
                     }
 
-                    const displayVisitDate = formatVisitDate(q.visitDate);
-
                     return (
                       <motion.tr 
                         key={q.id} 
                         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)', transition: { duration: 0.2 } }}
-                        style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.03)' : '1px solid rgba(0,0,0,0.03)' }}
+                        style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.04)' : '1px solid rgba(0,0,0,0.04)' }}
                       >
-                        {/* Visitor Info */}
-                        <td style={{ padding: '16px 24px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                            <div style={{ width: 40, height: 40, borderRadius: 12, background: `linear-gradient(135deg, ${rc.color}30, ${rc.color}60)`, color: rc.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800, flexShrink: 0 }}>
+                        {/* 1. Visitor Name & ID */}
+                        <td style={{ padding: '16px 20px', verticalAlign: 'middle' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <div style={{ width: 38, height: 38, borderRadius: 12, background: `linear-gradient(135deg, ${rc.color}30, ${rc.color}60)`, color: rc.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800, flexShrink: 0 }}>
                               {q.fullName ? q.fullName.charAt(0).toUpperCase() : '?'}
                             </div>
                             <div>
                               <div style={{ fontSize: 14, fontWeight: 700, color: isDark ? '#f8fafc' : '#0f172a', display: 'flex', alignItems: 'center', gap: 6 }}>
                                 {q.fullName || 'Unknown Visitor'}
                                 {q.arrivedAtGate && (
-                                  <span style={{ background: '#ef4444', color: 'white', fontSize: 10, fontWeight: 800, padding: '2px 6px', borderRadius: 4, animation: 'pulse 1.5s infinite' }}>
-                                    🚨 WAITING AT GATE
+                                  <span style={{ background: '#ef4444', color: 'white', fontSize: 9, fontWeight: 800, padding: '2px 5px', borderRadius: 4 }}>
+                                    🚨 GATE
                                   </span>
                                 )}
                               </div>
-                              <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#64748b' }}>Pass ID: <strong style={{ color: '#38bdf8' }}>{q.id || q.visitorId}</strong></div>
-                              <div style={{ fontSize: 11, color: isDark ? '#cbd5e1' : '#475569', marginTop: 3 }}>
-                                📅 Visit Date: <strong style={{ color: '#10b981' }}>{displayVisitDate}</strong>
-                              </div>
-                              <div style={{ fontSize: 11, color: isDark ? '#94a3b8' : '#64748b', marginTop: 1 }}>
-                                🕒 Applied: <span style={{ color: isDark ? '#cbd5e1' : '#475569' }}>
-                                  {q.createdAt ? new Date(q.createdAt).toLocaleString('en-IN', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Just now'}
-                                </span>
-                              </div>
+                              <div style={{ fontSize: 11, color: '#38bdf8', fontWeight: 600, marginTop: 1 }}>ID: {q.id || q.visitorId}</div>
                             </div>
                           </div>
                         </td>
 
-                        {/* Host & Dept */}
-                        <td style={{ padding: '16px 24px' }}>
-                          <div style={{ fontSize: 13, fontWeight: 600, color: isDark ? '#e2e8f0' : '#334155' }}>{q.personToMeet || q.host || 'Unknown Host'}</div>
-                          <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#64748b' }}>{q.department || q.dept || 'N/A'}</div>
-                        </td>
-
-                        {/* Purpose & ID */}
-                        <td style={{ padding: '16px 24px' }}>
-                          <div style={{ fontSize: 13, color: isDark ? '#e2e8f0' : '#334155' }}>{q.purpose || 'Meeting'}</div>
-                          <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#64748b', display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <ShieldAlert size={12} /> {q.idType || 'N/A'}
+                        {/* 2. Applied Date */}
+                        <td style={{ padding: '16px 20px', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: isDark ? '#e2e8f0' : '#334155' }}>
+                            {formatAppliedDate(q.createdAt)}
                           </div>
                         </td>
 
-                        {/* Risk & Wait */}
-                        <td style={{ padding: '16px 24px' }}>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-start' }}>
-                            <span style={{ background: rc.bg, color: rc.color, padding: '2px 8px', borderRadius: 12, fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        {/* 3. Visit Date */}
+                        <td style={{ padding: '16px 20px', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: '#10b981', background: 'rgba(16,185,129,0.1)', padding: '4px 10px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                            📅 {formatVisitDate(q.visitDate)}
+                          </div>
+                        </td>
+
+                        {/* 4. Branch */}
+                        <td style={{ padding: '16px 20px', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: isDark ? '#f8fafc' : '#0f172a' }}>
+                            {q.branch || 'Main Branch'}
+                          </div>
+                        </td>
+
+                        {/* 5. Department */}
+                        <td style={{ padding: '16px 20px', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
+                          <div style={{ fontSize: 12, color: isDark ? '#cbd5e1' : '#475569', fontWeight: 500 }}>
+                            {q.department || q.dept || 'General'}
+                          </div>
+                        </td>
+
+                        {/* 6. Purpose / ID */}
+                        <td style={{ padding: '16px 20px', verticalAlign: 'middle' }}>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: isDark ? '#e2e8f0' : '#334155' }}>{q.purpose || 'Meeting'}</div>
+                          <div style={{ fontSize: 11, color: isDark ? '#94a3b8' : '#64748b', display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
+                            <ShieldAlert size={11} /> {q.idType || 'Govt ID'}
+                          </div>
+                        </td>
+
+                        {/* 7. Host */}
+                        <td style={{ padding: '16px 20px', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: isDark ? '#f8fafc' : '#0f172a' }}>
+                            {q.personToMeet || q.host || 'Branch Admin'}
+                          </div>
+                        </td>
+
+                        {/* 8. Risk & Wait */}
+                        <td style={{ padding: '16px 20px', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start' }}>
+                            <span style={{ background: rc.bg, color: rc.color, padding: '2px 8px', borderRadius: 12, fontSize: 10, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                               <AlertTriangle size={10} /> {rc.label}
                             </span>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: waitMin > 20 ? '#ef4444' : '#f59e0b', fontSize: 12, fontWeight: 700 }}>
-                              <Clock size={12} /> {waitMin > 0 ? `${waitMin}m waiting` : 'Just now'}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: waitMin > 20 ? '#ef4444' : '#f59e0b', fontSize: 11, fontWeight: 700 }}>
+                              <Clock size={11} /> {waitMin > 0 ? `${waitMin}m waiting` : 'Just now'}
                             </div>
                           </div>
                         </td>
 
-                        {/* Actions */}
-                        <td style={{ padding: '16px 24px', textAlign: 'right' }}>
+                        {/* 9. Actions */}
+                        <td style={{ padding: '16px 20px', verticalAlign: 'middle', textAlign: 'right', whiteSpace: 'nowrap' }}>
                           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                             <button onClick={() => handleAction(q.id, 'approved')}
-                              style={{ width: 36, height: 36, borderRadius: 10, border: 'none', background: 'rgba(16,185,129,0.1)', color: '#10b981', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease' }}
+                              style={{ width: 36, height: 36, borderRadius: 10, border: 'none', background: 'rgba(16,185,129,0.12)', color: '#10b981', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease' }}
                               onMouseEnter={e => { e.currentTarget.style.background = '#10b981'; e.currentTarget.style.color = '#fff'; }}
-                              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(16,185,129,0.1)'; e.currentTarget.style.color = '#10b981'; }}
+                              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(16,185,129,0.12)'; e.currentTarget.style.color = '#10b981'; }}
                               title="Approve"
                             >
                               <CheckCircle2 size={18} />
                             </button>
                             <button onClick={() => handleAction(q.id, 'rejected')}
-                              style={{ width: 36, height: 36, borderRadius: 10, border: 'none', background: 'rgba(239,68,68,0.1)', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease' }}
+                              style={{ width: 36, height: 36, borderRadius: 10, border: 'none', background: 'rgba(239,68,68,0.12)', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease' }}
                               onMouseEnter={e => { e.currentTarget.style.background = '#ef4444'; e.currentTarget.style.color = '#fff'; }}
-                              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.1)'; e.currentTarget.style.color = '#ef4444'; }}
+                              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.12)'; e.currentTarget.style.color = '#ef4444'; }}
                               title="Reject"
                             >
                               <XCircle size={18} />
@@ -421,11 +469,15 @@ export default function ApprovalQueue() {
           <div style={{ width: '100%', overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
               <thead>
-                <tr>
-                  <th style={{ padding: '16px 24px', fontSize: 12, fontWeight: 700, color: isDark ? '#64748b' : '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)' }}>Visitor Details</th>
-                  <th style={{ padding: '16px 24px', fontSize: 12, fontWeight: 700, color: isDark ? '#64748b' : '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)' }}>Host & Dept</th>
-                  <th style={{ padding: '16px 24px', fontSize: 12, fontWeight: 700, color: isDark ? '#64748b' : '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)' }}>Purpose / ID</th>
-                  <th style={{ padding: '16px 24px', fontSize: 12, fontWeight: 700, color: isDark ? '#64748b' : '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)', textAlign: 'right' }}>Status & Time</th>
+                <tr style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid #e2e8f0', background: isDark ? 'rgba(255,255,255,0.02)' : '#f8fafc' }}>
+                  <th style={thStyle}>Visitor Name</th>
+                  <th style={thStyle}>Applied Date</th>
+                  <th style={thStyle}>Visit Date</th>
+                  <th style={thStyle}>Branch</th>
+                  <th style={thStyle}>Department</th>
+                  <th style={thStyle}>Purpose / ID</th>
+                  <th style={thStyle}>Host</th>
+                  <th style={{ ...thStyle, textAlign: 'right' }}>Status & Time</th>
                 </tr>
               </thead>
               <tbody>
@@ -437,38 +489,64 @@ export default function ApprovalQueue() {
                     style={{ borderBottom: i !== localProcessed.length - 1 ? (isDark ? '1px solid rgba(255,255,255,0.03)' : '1px solid rgba(0,0,0,0.03)') : 'none', opacity: 0.8 }}>
                     
                     {/* Visitor Info */}
-                    <td style={{ padding: '16px 24px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                        <div style={{ width: 40, height: 40, borderRadius: 12, background: `linear-gradient(135deg, ${rc.color}30, ${rc.color}60)`, color: rc.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800, flexShrink: 0 }}>
+                    <td style={{ padding: '16px 20px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                        <div style={{ width: 38, height: 38, borderRadius: 12, background: `linear-gradient(135deg, ${rc.color}30, ${rc.color}60)`, color: rc.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800, flexShrink: 0 }}>
                           {p.fullName ? p.fullName.charAt(0).toUpperCase() : '?'}
                         </div>
                         <div>
                           <div style={{ fontSize: 14, fontWeight: 700, color: isDark ? '#f8fafc' : '#0f172a' }}>{p.fullName || 'Unknown Visitor'}</div>
-                          <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#64748b' }}>Pass ID: <strong style={{ color: '#38bdf8' }}>{p.id || p.visitorId}</strong></div>
-                          <div style={{ fontSize: 11, color: isDark ? '#cbd5e1' : '#475569', marginTop: 2 }}>
-                            📅 Visit Date: <strong style={{ color: '#10b981' }}>{formatVisitDate(p.visitDate)}</strong>
-                          </div>
+                          <div style={{ fontSize: 11, color: '#38bdf8', fontWeight: 600 }}>ID: {p.id || p.visitorId}</div>
                         </div>
                       </div>
                     </td>
 
-                    {/* Host & Dept */}
-                    <td style={{ padding: '16px 24px' }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: isDark ? '#e2e8f0' : '#334155' }}>{p.personToMeet || p.host || 'Unknown Host'}</div>
-                      <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#64748b' }}>{p.department || p.dept || 'N/A'}</div>
+                    {/* Applied Date */}
+                    <td style={{ padding: '16px 20px', whiteSpace: 'nowrap' }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: isDark ? '#e2e8f0' : '#334155' }}>
+                        {formatAppliedDate(p.createdAt)}
+                      </div>
                     </td>
 
-                    {/* Purpose & ID */}
-                    <td style={{ padding: '16px 24px' }}>
+                    {/* Visit Date */}
+                    <td style={{ padding: '16px 20px', whiteSpace: 'nowrap' }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#10b981', background: 'rgba(16,185,129,0.1)', padding: '4px 10px', borderRadius: 8, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        📅 {formatVisitDate(p.visitDate)}
+                      </div>
+                    </td>
+
+                    {/* Branch */}
+                    <td style={{ padding: '16px 20px', whiteSpace: 'nowrap' }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: isDark ? '#f8fafc' : '#0f172a' }}>
+                        {p.branch || 'Main Branch'}
+                      </div>
+                    </td>
+
+                    {/* Department */}
+                    <td style={{ padding: '16px 20px', whiteSpace: 'nowrap' }}>
+                      <div style={{ fontSize: 12, color: isDark ? '#cbd5e1' : '#475569', fontWeight: 500 }}>
+                        {p.department || p.dept || 'General'}
+                      </div>
+                    </td>
+
+                    {/* Purpose / ID */}
+                    <td style={{ padding: '16px 20px' }}>
                       <div style={{ fontSize: 13, color: isDark ? '#e2e8f0' : '#334155' }}>{p.purpose || 'Meeting'}</div>
-                      <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#64748b', display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <ShieldAlert size={12} /> {p.idType || 'N/A'}
+                      <div style={{ fontSize: 11, color: isDark ? '#94a3b8' : '#64748b', display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <ShieldAlert size={11} /> {p.idType || 'N/A'}
+                      </div>
+                    </td>
+
+                    {/* Host */}
+                    <td style={{ padding: '16px 20px', whiteSpace: 'nowrap' }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: isDark ? '#e2e8f0' : '#334155' }}>
+                        {p.personToMeet || p.host || 'Branch Admin'}
                       </div>
                     </td>
 
                     {/* Status & Time */}
-                    <td style={{ padding: '16px 24px', textAlign: 'right' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end' }}>
+                    <td style={{ padding: '16px 20px', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end' }}>
                         <span style={{ 
                           background: p.action === 'approved' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', 
                           color: p.action === 'approved' ? '#10b981' : '#ef4444', 
@@ -477,8 +555,8 @@ export default function ApprovalQueue() {
                           {p.action === 'approved' ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
                           {p.action === 'approved' ? 'Approved' : 'Rejected'}
                         </span>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: isDark ? '#64748b' : '#94a3b8', fontSize: 12, fontWeight: 600 }}>
-                          <Clock size={12} /> {p.processedAt}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: isDark ? '#64748b' : '#94a3b8', fontSize: 11, fontWeight: 600 }}>
+                          <Clock size={11} /> {p.processedAt}
                         </div>
                       </div>
                     </td>
