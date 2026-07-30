@@ -81,10 +81,10 @@ export function DataProvider({ children }) {
   useEffect(() => {
     fetchLiveDatas(false);
 
-    // Polling every 4 seconds for real-time updates on admin approval queue
+    // Fast polling every 2 seconds for real-time live sync on admin approval queue
     const interval = setInterval(() => {
       fetchLiveDatas(true);
-    }, 4000);
+    }, 2000);
 
     return () => clearInterval(interval);
   }, []);

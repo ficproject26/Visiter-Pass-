@@ -27,6 +27,7 @@ export default function RegistrationForm({ onNavigate: externalOnNavigate, onNew
   const [errors, setErrors] = useState({});
   const [successes, setSuccesses] = useState({});
   const [idProofFileName, setIdProofFileName] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [newVisitor, setNewVisitor] = useState(null);
   const { isDark } = useTheme();
@@ -276,6 +277,8 @@ export default function RegistrationForm({ onNavigate: externalOnNavigate, onNew
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -283,24 +286,26 @@ export default function RegistrationForm({ onNavigate: externalOnNavigate, onNew
       return;
     }
 
-    // Upload photo and ID proof to Cloudinary in parallel
-    const [uploadedPhoto, uploadedIdProof] = await Promise.all([
-      uploadImageToCloudinary(form.photo),
-      uploadImageToCloudinary(form.idProof)
-    ]);
-
-    const visitor = {
-      ...form,
-      personToMeet: form.personToMeet || "Branch Admin",
-      photo: uploadedPhoto,
-      idProof: uploadedIdProof,
-      id: generateId(),
-      status: "PENDING",
-      approvalStatus: "PENDING",
-      checkOutTime: null
-    };
+    setIsSubmitting(true);
 
     try {
+      // Upload photo and ID proof to Cloudinary in parallel
+      const [uploadedPhoto, uploadedIdProof] = await Promise.all([
+        uploadImageToCloudinary(form.photo),
+        uploadImageToCloudinary(form.idProof)
+      ]);
+
+      const visitor = {
+        ...form,
+        personToMeet: form.personToMeet || "Branch Admin",
+        photo: uploadedPhoto,
+        idProof: uploadedIdProof,
+        id: generateId(),
+        status: "PENDING",
+        approvalStatus: "PENDING",
+        checkOutTime: null
+      };
+
       const res = await fetch(`${API_BASE_URL}/api/visitors`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -315,10 +320,12 @@ export default function RegistrationForm({ onNavigate: externalOnNavigate, onNew
       } else {
         const errData = await res.json().catch(() => ({}));
         alert(`Failed to register visitor: ${errData.error || 'Database Error'}`);
+        setIsSubmitting(false);
       }
     } catch (err) {
       console.error("Registration error:", err);
       alert("Network error: Could not reach backend server.");
+      setIsSubmitting(false);
     }
   };
 
@@ -639,10 +646,11 @@ export default function RegistrationForm({ onNavigate: externalOnNavigate, onNew
             </button>
             <button
               type="submit"
+              disabled={isSubmitting}
               className="btn btn-primary"
-              style={{ padding: "11px 28px", whiteSpace: "nowrap" }}
+              style={{ padding: "11px 28px", whiteSpace: "nowrap", opacity: isSubmitting ? 0.7 : 1, cursor: isSubmitting ? "not-allowed" : "pointer" }}
             >
-              Register & Generate Pass →
+              {isSubmitting ? "⏳ Processing Registration..." : "Register & Generate Pass →"}
             </button>
           </motion.div>
         </form>
