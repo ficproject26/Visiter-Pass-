@@ -129,8 +129,8 @@ export default function VisitorBookings({ onNewBooking }) {
                       <td style={{ padding: '16px 20px', fontSize: 12, fontWeight: 700, color: '#4f46e5' }}>{b.visitorId || b.id || 'VB-000'}</td>
                       <td style={{ padding: '16px 20px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          {b.photo ? (
-                            <img src={b.photo} alt={b.fullName || b.visitorName} style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', border: '1px solid #e2e8f0' }} />
+                          {b.photoUrl || b.photo ? (
+                            <img src={b.photoUrl || b.photo} alt={b.fullName || b.visitorName} style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', border: '1px solid #e2e8f0' }} />
                           ) : (
                             <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg, #ccfbf1, #c7d2fe)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4f46e5', fontWeight: 700, fontSize: 13, flexShrink: 0 }}>
                               {(b.fullName || b.visitorName || 'U').charAt(0)}

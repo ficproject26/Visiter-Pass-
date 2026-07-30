@@ -294,9 +294,9 @@ export default function QRScannerSim({ visitors = [], onUpdate, initialVisitorId
 
             {/* Profile info display */}
             <div style={{ padding: "1.5rem", display: "flex", gap: 16, borderBottom: "1px solid #f1f5f9" }}>
-              {scannedVisitor.photo ? (
+              {scannedVisitor.photoUrl || scannedVisitor.photo ? (
                 <img 
-                  src={scannedVisitor.photo} 
+                  src={scannedVisitor.photoUrl || scannedVisitor.photo} 
                   alt={scannedVisitor.fullName} 
                   style={{ width: 90, height: 115, borderRadius: 10, objectFit: "cover", border: "1px solid #cbd5e1" }} 
                 />

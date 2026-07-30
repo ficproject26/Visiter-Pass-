@@ -1,8 +1,11 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { prisma } from './prisma.js';
 
-const DATA_DIR = path.join(process.cwd(), 'data');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const DATA_DIR = path.resolve(__dirname, '../../data');
 const inMemoryCache = {
   'visitors.json': null,
   'employees.json': null,
@@ -59,21 +62,53 @@ async function withTimeout(promise, ms = 8000) {
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
+let isDbOffline = false;
+let lastDbCheck = 0;
+const DB_OFFLINE_COOLDOWN = 60000; // 1 minute cooldown
+
+function checkDbOnline() {
+  if (isDbOffline) {
+    const now = Date.now();
+    if (now - lastDbCheck < DB_OFFLINE_COOLDOWN) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function markDbOffline() {
+  if (!isDbOffline) {
+    isDbOffline = true;
+    lastDbCheck = Date.now();
+    console.warn(`Circuit Breaker: Database marked OFFLINE. Falling back to local storage for ${DB_OFFLINE_COOLDOWN / 1000}s.`);
+  }
+}
+
+function markDbOnline() {
+  if (isDbOffline) {
+    isDbOffline = false;
+    console.log("Circuit Breaker: Database connection RESTORED.");
+  }
+}
+
 let cachedTenantId = null;
 
 async function getOrCreateTenantId() {
   if (cachedTenantId) return cachedTenantId;
+  if (!checkDbOnline()) return 'default-tenant-id';
   try {
-    let tenant = await prisma.tenant.findFirst().catch(() => null);
+    let tenant = await withTimeout(prisma.tenant.findFirst(), 1500).catch(() => null);
     if (!tenant) {
-      tenant = await prisma.tenant.create({ data: { name: 'Default Tenant', domain: 'default.com' } }).catch(() => null);
+      tenant = await withTimeout(prisma.tenant.create({ data: { name: 'Default Tenant', domain: 'default.com' } }), 1500).catch(() => null);
     }
     if (tenant) {
       cachedTenantId = tenant.id;
+      markDbOnline();
       return cachedTenantId;
     }
   } catch (err) {
     console.warn("Error getting tenantId:", err.message);
+    markDbOffline();
   }
   return 'default-tenant-id';
 }
@@ -81,6 +116,10 @@ async function getOrCreateTenantId() {
 export async function getVisitors() {
   const fileVisitors = readJsonFile('visitors.json', []);
   let dbVisitors = [];
+
+  if (!checkDbOnline()) {
+    return fileVisitors.map(v => ({ ...v, id: v.visitorId || v.id }));
+  }
 
   try {
     const fetched = await withTimeout(prisma.visitor.findMany({
@@ -95,6 +134,8 @@ export async function getVisitors() {
         gender: true,
         idType: true,
         idNumber: true,
+        idProofUrl: true,
+        photoUrl: true,
         purpose: true,
         personToMeet: true,
         department: true,
@@ -115,16 +156,36 @@ export async function getVisitors() {
         createdAt: true,
         updatedAt: true
       }
-    }), 8000);
+    }), 4500);
 
-    if (Array.isArray(fetched)) {
+    if (Array.isArray(fetched) && fetched.length > 0) {
       dbVisitors = fetched.map(v => ({
         ...v,
         id: v.visitorId || v.id
       }));
+      markDbOnline();
+
+      // Auto-sync fetched DB records into local storage so backup is never stale
+      try {
+        const mergedMap = new Map();
+        for (const v of fileVisitors) {
+          const key = String(v.visitorId || v.id || '').toUpperCase().replace(/-/g, "");
+          if (key) mergedMap.set(key, v);
+        }
+        for (const v of dbVisitors) {
+          const key = String(v.visitorId || v.id || '').toUpperCase().replace(/-/g, "");
+          if (key) {
+            const existing = mergedMap.get(key) || {};
+            mergedMap.set(key, { ...existing, ...v, id: v.visitorId || v.id });
+          }
+        }
+        const updatedList = Array.from(mergedMap.values());
+        writeJsonFile('visitors.json', updatedList);
+      } catch (e) {}
     }
   } catch (err) {
     console.warn("Prisma unavailable/timed out, using local storage:", err.message);
+    markDbOffline();
   }
 
   const mergedMap = new Map();
@@ -187,61 +248,66 @@ export async function createVisitor(data) {
     visitors.unshift(newRecord);
     writeJsonFile('visitors.json', visitors);
 
-    try {
-      const tenantId = await getOrCreateTenantId();
-      const rawDate = data.visitDate ? new Date(data.visitDate) : new Date();
-      const parsedDate = isNaN(rawDate.getTime()) ? new Date() : rawDate;
+      if (checkDbOnline()) {
+        try {
+          const tenantId = await getOrCreateTenantId();
+          const rawDate = data.visitDate ? new Date(data.visitDate) : new Date();
+          const parsedDate = isNaN(rawDate.getTime()) ? new Date() : rawDate;
 
-      // Strict Prisma Enum validation mapping
-      let statusEnum = 'PENDING';
-      const statusStr = String(data.status || '').toUpperCase();
-      if (statusStr.includes('CHECKED_IN') || statusStr.includes('CHECKIN')) statusEnum = 'CHECKED_IN';
-      else if (statusStr.includes('CHECKED_OUT') || statusStr.includes('CHECKOUT')) statusEnum = 'CHECKED_OUT';
+          // Strict Prisma Enum validation mapping
+          let statusEnum = 'PENDING';
+          const statusStr = String(data.status || '').toUpperCase();
+          if (statusStr.includes('CHECKED_IN') || statusStr.includes('CHECKIN')) statusEnum = 'CHECKED_IN';
+          else if (statusStr.includes('CHECKED_OUT') || statusStr.includes('CHECKOUT')) statusEnum = 'CHECKED_OUT';
 
-      let approvalStatusEnum = 'PENDING';
-      const approvalStr = String(data.approvalStatus || '').toUpperCase();
-      if (approvalStr.includes('APPROV')) approvalStatusEnum = 'APPROVED';
-      else if (approvalStr.includes('REJECT')) approvalStatusEnum = 'REJECTED';
+          let approvalStatusEnum = 'PENDING';
+          const approvalStr = String(data.approvalStatus || '').toUpperCase();
+          if (approvalStr.includes('APPROV')) approvalStatusEnum = 'APPROVED';
+          else if (approvalStr.includes('REJECT')) approvalStatusEnum = 'REJECTED';
 
-      const dbCreated = await withTimeout(prisma.visitor.create({
-        data: {
-          visitorId: visitorId,
-          tenantId: tenantId,
-          visitorType: data.visitorType || 'Guest Visitor',
-          fullName: data.fullName || '',
-          email: data.email || '',
-          phone: data.phone || '',
-          gender: data.gender || 'Male',
-          idType: data.idType || 'Aadhaar',
-          idNumber: data.idNumber || '',
-          idProofUrl: data.idProof || null,
-          photoUrl: data.photo || null,
-          purpose: data.purpose || 'Meeting',
-          personToMeet: data.personToMeet || 'Branch Admin',
-          department: data.department || 'General',
-          branch: data.branch || 'Main Location',
-          visitDate: parsedDate,
-          checkInTime: data.checkInTime || '',
-          checkOutTime: null,
-          vehicleNumber: data.vehicleNumber || null,
-          companyName: data.companyName || data.interviewDomain || null,
-          positionApplied: data.positionApplied || data.interviewRole || null,
-          meetingAgenda: data.meetingAgenda || null,
-          status: statusEnum,
-          approvalStatus: approvalStatusEnum,
-          arrivedAtGate: data.arrivedAtGate !== undefined ? Boolean(data.arrivedAtGate) : false
+          const dbCreated = await withTimeout(prisma.visitor.create({
+            data: {
+              visitorId: visitorId,
+              tenantId: tenantId,
+              visitorType: data.visitorType || 'Guest Visitor',
+              fullName: data.fullName || '',
+              email: data.email || '',
+              phone: data.phone || '',
+              gender: data.gender || 'Male',
+              idType: data.idType || 'Aadhaar',
+              idNumber: data.idNumber || '',
+              idProofUrl: data.idProof || null,
+              photoUrl: data.photo || null,
+              purpose: data.purpose || 'Meeting',
+              personToMeet: data.personToMeet || 'Branch Admin',
+              department: data.department || 'General',
+              branch: data.branch || 'Main Location',
+              visitDate: parsedDate,
+              checkInTime: data.checkInTime || '',
+              checkOutTime: null,
+              vehicleNumber: data.vehicleNumber || null,
+              companyName: data.companyName || data.interviewDomain || null,
+              positionApplied: data.positionApplied || data.interviewRole || null,
+              meetingAgenda: data.meetingAgenda || null,
+              status: statusEnum,
+              approvalStatus: approvalStatusEnum,
+              arrivedAtGate: data.arrivedAtGate !== undefined ? Boolean(data.arrivedAtGate) : false
+            }
+          }), 2000).catch(err => {
+            console.error("Prisma visitor.create error:", err.message);
+            markDbOffline();
+            return null;
+          });
+
+          if (dbCreated) {
+            console.log("Successfully persisted visitor in MongoDB Atlas:", dbCreated.visitorId);
+            markDbOnline();
+          }
+        } catch (err) {
+          console.error("MongoDB Atlas insertion exception:", err.message);
+          markDbOffline();
         }
-      }), 4000).catch(err => {
-        console.error("Prisma visitor.create error:", err.message);
-        return null;
-      });
-
-      if (dbCreated) {
-        console.log("Successfully persisted visitor in MongoDB Atlas:", dbCreated.visitorId);
       }
-    } catch (err) {
-      console.error("MongoDB Atlas insertion exception:", err.message);
-    }
 
     return newRecord;
   } catch (outerErr) {
@@ -287,25 +353,35 @@ export async function updateVisitor(id, updates) {
     updatedRecord = visitors[index];
   }
 
-  try {
-    const target = await withTimeout(prisma.visitor.findFirst({
-      where: {
-        OR: [
-          { visitorId: id },
-          { visitorId: cleanId },
-          { id: id }
-        ]
-      }
-    }), 1200).catch(() => null);
+  if (checkDbOnline()) {
+    try {
+      const target = await withTimeout(prisma.visitor.findFirst({
+        where: {
+          OR: [
+            { visitorId: id },
+            { visitorId: cleanId },
+            { id: id }
+          ]
+        }
+      }), 1200).catch(err => {
+        markDbOffline();
+        return null;
+      });
 
-    if (target) {
-      await withTimeout(prisma.visitor.update({
-        where: { id: target.id },
-        data: dbUpdates
-      }), 2000).catch(() => null);
+      if (target) {
+        await withTimeout(prisma.visitor.update({
+          where: { id: target.id },
+          data: dbUpdates
+        }), 1500).catch(err => {
+          markDbOffline();
+          return null;
+        });
+        markDbOnline();
+      }
+    } catch (err) {
+      console.warn("Prisma update failed:", err.message);
+      markDbOffline();
     }
-  } catch (err) {
-    console.warn("Prisma update failed:", err.message);
   }
 
   return updatedRecord || { id, ...updates };
@@ -331,6 +407,10 @@ export async function getVisitorById(id) {
     };
   }
 
+  if (!checkDbOnline()) {
+    return null;
+  }
+
   try {
     const dbVisitor = await withTimeout(prisma.visitor.findFirst({
       where: {
@@ -340,9 +420,13 @@ export async function getVisitorById(id) {
           { id: id }
         ]
       }
-    }), 1200).catch(() => null);
+    }), 1200).catch(err => {
+      markDbOffline();
+      return null;
+    });
 
     if (dbVisitor) {
+      markDbOnline();
       return {
         ...dbVisitor,
         id: dbVisitor.visitorId || dbVisitor.id,
@@ -352,6 +436,7 @@ export async function getVisitorById(id) {
     }
   } catch (err) {
     console.warn("Prisma unavailable for single fetch:", err.message);
+    markDbOffline();
   }
 
   return null;
@@ -359,14 +444,22 @@ export async function getVisitorById(id) {
 
 export async function getBranches() {
   const fileBranches = readJsonFile('branches.json', []);
-  let dbBranches = [];
+  if (!checkDbOnline()) {
+    return fileBranches;
+  }
+
   try {
-    const fetched = await withTimeout(prisma.branch.findMany(), 3000).catch(() => []);
+    const fetched = await withTimeout(prisma.branch.findMany(), 1500).catch(err => {
+      markDbOffline();
+      return [];
+    });
     if (fetched && fetched.length > 0) {
       dbBranches = fetched;
+      markDbOnline();
     }
   } catch (err) {
     console.warn("Prisma branch.findMany error:", err.message);
+    markDbOffline();
   }
 
   const mergedMap = new Map();
@@ -405,32 +498,37 @@ export async function createBranch(data) {
   branches.unshift(newRecord);
   writeJsonFile('branches.json', branches);
 
-  try {
-    const dbCreated = await withTimeout(prisma.branch.create({
-      data: {
-        name: data.name || '',
-        type: data.type || 'Branch',
-        address: data.address || '',
-        city: data.city || (data.name ? data.name.split(' ')[0] : 'City'),
-        state: data.state || '',
-        pincode: data.pincode || '',
-        manager: data.manager || '',
-        phone: data.phone || '',
-        email: data.email || '',
-        password: data.password || null,
-        capacity: data.capacity || '100',
-        status: 'active'
-      }
-    }), 4000).catch(err => {
-      console.error("Prisma branch.create error:", err.message);
-      return null;
-    });
+  if (checkDbOnline()) {
+    try {
+      const dbCreated = await withTimeout(prisma.branch.create({
+        data: {
+          name: data.name || '',
+          type: data.type || 'Branch',
+          address: data.address || '',
+          city: data.city || (data.name ? data.name.split(' ')[0] : 'City'),
+          state: data.state || '',
+          pincode: data.pincode || '',
+          manager: data.manager || '',
+          phone: data.phone || '',
+          email: data.email || '',
+          password: data.password || null,
+          capacity: data.capacity || '100',
+          status: 'active'
+        }
+      }), 2000).catch(err => {
+        console.error("Prisma branch.create error:", err.message);
+        markDbOffline();
+        return null;
+      });
 
-    if (dbCreated) {
-      console.log("Successfully persisted branch in MongoDB Atlas:", dbCreated.name);
+      if (dbCreated) {
+        console.log("Successfully persisted branch in MongoDB Atlas:", dbCreated.name);
+        markDbOnline();
+      }
+    } catch (err) {
+      console.error("MongoDB Atlas branch creation exception:", err.message);
+      markDbOffline();
     }
-  } catch (err) {
-    console.error("MongoDB Atlas branch creation exception:", err.message);
   }
 
   return newRecord;
@@ -438,14 +536,22 @@ export async function createBranch(data) {
 
 export async function getEmployees() {
   const fileEmps = readJsonFile('employees.json', []);
-  let dbEmps = [];
+  if (!checkDbOnline()) {
+    return fileEmps;
+  }
+
   try {
-    const fetched = await withTimeout(prisma.employee.findMany(), 3000).catch(() => []);
+    const fetched = await withTimeout(prisma.employee.findMany(), 1500).catch(err => {
+      markDbOffline();
+      return [];
+    });
     if (fetched && fetched.length > 0) {
       dbEmps = fetched;
+      markDbOnline();
     }
   } catch (err) {
     console.warn("Prisma employee.findMany error:", err.message);
+    markDbOffline();
   }
 
   const mergedMap = new Map();
@@ -488,29 +594,34 @@ export async function createEmployee(data) {
   employees.unshift(newRecord);
   writeJsonFile('employees.json', employees);
 
-  try {
-    const dbCreated = await withTimeout(prisma.employee.create({
-      data: {
-        empId: empId,
-        name: data.name || '',
-        email: data.email || '',
-        password: data.password || 'password123',
-        role: data.role || 'Security Officer',
-        department: data.department || 'Security',
-        location: data.location || 'Bangalore HQ',
-        status: data.status || 'active',
-        photoUrl: data.photo || null
-      }
-    }), 4000).catch(err => {
-      console.error("Prisma employee.create error:", err.message);
-      return null;
-    });
+  if (checkDbOnline()) {
+    try {
+      const dbCreated = await withTimeout(prisma.employee.create({
+        data: {
+          empId: empId,
+          name: data.name || '',
+          email: data.email || '',
+          password: data.password || 'password123',
+          role: data.role || 'Security Officer',
+          department: data.department || 'Security',
+          location: data.location || 'Bangalore HQ',
+          status: data.status || 'active',
+          photoUrl: data.photo || null
+        }
+      }), 2000).catch(err => {
+        console.error("Prisma employee.create error:", err.message);
+        markDbOffline();
+        return null;
+      });
 
-    if (dbCreated) {
-      console.log("Successfully persisted employee in MongoDB Atlas:", dbCreated.email);
+      if (dbCreated) {
+        console.log("Successfully persisted employee in MongoDB Atlas:", dbCreated.email);
+        markDbOnline();
+      }
+    } catch (err) {
+      console.error("MongoDB Atlas employee creation exception:", err.message);
+      markDbOffline();
     }
-  } catch (err) {
-    console.error("MongoDB Atlas employee creation exception:", err.message);
   }
 
   return newRecord;

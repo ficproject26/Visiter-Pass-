@@ -6,6 +6,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useData } from '../../context/DataContext';
 import { ShieldAlert, CheckCircle2, XCircle, Clock, AlertTriangle, Search, RefreshCw, Calendar, MapPin } from 'lucide-react';
 import { API_BASE_URL } from '../../config/api';
+import VisitorDetailModal from './VisitorDetailModal';
 
 const riskConfig = {
   LOW_RISK: { color: '#10b981', bg: 'rgba(16,185,129,0.1)', label: 'Low Risk' },
@@ -49,6 +50,7 @@ export default function ApprovalQueue() {
   const { isDark } = useTheme();
   const { visitors, branches = [], refreshData } = useData();
   const [localProcessed, setLocalProcessed] = useState([]);
+  const [selectedVisitor, setSelectedVisitor] = useState(null);
   
   // Filter States
   const [searchQuery, setSearchQuery] = useState('');
@@ -56,6 +58,42 @@ export default function ApprovalQueue() {
   const [dateFilter, setDateFilter] = useState('ALL'); // TODAY, ALL
   const [branchFilter, setBranchFilter] = useState('ALL');
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleCheckIn = async (id) => {
+    try {
+      await fetch(`${API_BASE_URL}/api/visitors/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: "CHECKED_IN",
+          approvalStatus: "APPROVED",
+          checkInTime: new Date().toTimeString().slice(0, 5)
+        })
+      });
+      refreshData();
+    } catch (err) {
+      console.error("Failed to check in visitor:", err);
+    }
+  };
+
+  const handleCheckOut = async (id) => {
+    try {
+      await fetch(`${API_BASE_URL}/api/visitors/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: "CHECKED_OUT",
+          checkOutTime: new Date().toTimeString().slice(0, 5)
+        })
+      });
+      refreshData();
+    } catch (err) {
+      console.error("Failed to check out visitor:", err);
+    }
+  };
+
+  const handleApprove = (id) => handleAction(id, 'approved');
+  const handleReject = (id) => handleAction(id, 'rejected');
 
   const handleManualRefresh = async () => {
     setIsRefreshing(true);
@@ -89,12 +127,13 @@ export default function ApprovalQueue() {
       // Branch filter
       if (branchFilter !== 'ALL' && v.branch !== branchFilter) return false;
 
-      // Date filter (Today vs All)
-      if (dateFilter === 'TODAY') {
+      // Date filter (All vs Today vs Selected Calendar Date)
+      if (dateFilter !== 'ALL') {
         const todayStr = new Date().toISOString().split('T')[0];
-        const vDate = v.visitDate ? String(v.visitDate).split('T')[0] : todayStr;
-        const cDate = v.createdAt ? new Date(v.createdAt).toISOString().split('T')[0] : todayStr;
-        if (vDate !== todayStr && cDate !== todayStr) return false;
+        const targetDate = dateFilter === 'TODAY' ? todayStr : dateFilter;
+        const vDate = v.visitDate ? String(v.visitDate).split('T')[0] : '';
+        const cDate = v.createdAt ? new Date(v.createdAt).toISOString().split('T')[0] : '';
+        if (vDate !== targetDate && cDate !== targetDate) return false;
       }
 
       // Text Search
@@ -269,26 +308,59 @@ export default function ApprovalQueue() {
             ))}
           </div>
 
-          {/* Date Filter Toggle */}
-          <button
-            onClick={() => setDateFilter(prev => prev === 'TODAY' ? 'ALL' : 'TODAY')}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '8px 14px',
-              borderRadius: 10,
-              border: dateFilter === 'TODAY' ? '1px solid #10b981' : isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #cbd5e1',
-              background: dateFilter === 'TODAY' ? 'rgba(16,185,129,0.15)' : 'transparent',
-              color: dateFilter === 'TODAY' ? '#10b981' : isDark ? '#cbd5e1' : '#475569',
-              fontWeight: 700,
-              fontSize: 12,
-              cursor: 'pointer'
-            }}
-          >
-            <Calendar size={14} />
-            <span>{dateFilter === 'TODAY' ? "📅 Today's Visitors" : "📅 All Dates"}</span>
-          </button>
+          {/* Calendar Date Picker & Selection */}
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              gap: 6, 
+              padding: '6px 12px', 
+              borderRadius: 10, 
+              background: dateFilter !== 'ALL' ? 'rgba(79,70,229,0.12)' : (isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc'), 
+              border: dateFilter !== 'ALL' ? '1px solid #6366f1' : (isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #cbd5e1') 
+            }}>
+              <Calendar size={15} style={{ color: dateFilter !== 'ALL' ? '#6366f1' : (isDark ? '#94a3b8' : '#64748b') }} />
+              <input
+                type="date"
+                value={dateFilter === 'ALL' ? '' : (dateFilter === 'TODAY' ? new Date().toISOString().split('T')[0] : dateFilter)}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    setDateFilter(e.target.value);
+                  } else {
+                    setDateFilter('ALL');
+                  }
+                }}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: isDark ? '#f8fafc' : '#0f172a',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  outline: 'none',
+                  cursor: 'pointer'
+                }}
+              />
+            </div>
+
+            <button
+              onClick={() => setDateFilter(prev => prev === 'ALL' ? 'TODAY' : 'ALL')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '8px 14px',
+                borderRadius: 10,
+                border: dateFilter === 'TODAY' ? '1px solid #10b981' : (isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #cbd5e1'),
+                background: dateFilter === 'TODAY' ? 'rgba(16,185,129,0.15)' : 'transparent',
+                color: dateFilter === 'TODAY' ? '#10b981' : (isDark ? '#cbd5e1' : '#475569'),
+                fontWeight: 700,
+                fontSize: 12,
+                cursor: 'pointer'
+              }}
+            >
+              <span>{dateFilter === 'TODAY' ? "📅 Today" : "📋 All Dates"}</span>
+            </button>
+          </div>
 
           {/* Branch Filter */}
           {branchOptions.length > 0 && (
@@ -368,10 +440,22 @@ export default function ApprovalQueue() {
                       >
                         {/* 1. Visitor Name & ID */}
                         <td style={{ padding: '16px 20px', verticalAlign: 'middle' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                            <div style={{ width: 38, height: 38, borderRadius: 12, background: `linear-gradient(135deg, ${rc.color}30, ${rc.color}60)`, color: rc.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800, flexShrink: 0 }}>
-                              {q.fullName ? q.fullName.charAt(0).toUpperCase() : '?'}
-                            </div>
+                          <div 
+                            onClick={() => setSelectedVisitor(q)}
+                            style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
+                            title="Click to view details"
+                          >
+                            {q.photoUrl || q.photo ? (
+                              <img 
+                                src={q.photoUrl || q.photo} 
+                                alt={q.fullName} 
+                                style={{ width: 38, height: 38, borderRadius: 12, objectFit: 'cover', flexShrink: 0 }}
+                              />
+                            ) : (
+                              <div style={{ width: 38, height: 38, borderRadius: 12, background: `linear-gradient(135deg, ${rc.color}30, ${rc.color}60)`, color: rc.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800, flexShrink: 0 }}>
+                                {q.fullName ? q.fullName.charAt(0).toUpperCase() : '?'}
+                              </div>
+                            )}
                             <div>
                               <div style={{ fontSize: 14, fontWeight: 700, color: isDark ? '#f8fafc' : '#0f172a', display: 'flex', alignItems: 'center', gap: 6 }}>
                                 {q.fullName || 'Unknown Visitor'}
@@ -504,10 +588,22 @@ export default function ApprovalQueue() {
                     
                     {/* Visitor Info */}
                     <td style={{ padding: '16px 20px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{ width: 38, height: 38, borderRadius: 12, background: `linear-gradient(135deg, ${rc.color}30, ${rc.color}60)`, color: rc.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800, flexShrink: 0 }}>
-                          {p.fullName ? p.fullName.charAt(0).toUpperCase() : '?'}
-                        </div>
+                      <div 
+                        onClick={() => setSelectedVisitor(p)}
+                        style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
+                        title="Click to view details"
+                      >
+                        {p.photoUrl || p.photo ? (
+                          <img 
+                            src={p.photoUrl || p.photo} 
+                            alt={p.fullName} 
+                            style={{ width: 38, height: 38, borderRadius: 12, objectFit: 'cover', flexShrink: 0 }}
+                          />
+                        ) : (
+                          <div style={{ width: 38, height: 38, borderRadius: 12, background: `linear-gradient(135deg, ${rc.color}30, ${rc.color}60)`, color: rc.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 800, flexShrink: 0 }}>
+                            {p.fullName ? p.fullName.charAt(0).toUpperCase() : '?'}
+                          </div>
+                        )}
                         <div>
                           <div style={{ fontSize: 14, fontWeight: 700, color: isDark ? '#f8fafc' : '#0f172a' }}>{p.fullName || 'Unknown Visitor'}</div>
                           <div style={{ fontSize: 11, color: '#38bdf8', fontWeight: 600 }}>ID: {p.id || p.visitorId}</div>
@@ -580,6 +676,17 @@ export default function ApprovalQueue() {
             </table>
           </div>
         </div>
+      )}
+
+      {selectedVisitor && (
+        <VisitorDetailModal
+          visitor={selectedVisitor}
+          onClose={() => setSelectedVisitor(null)}
+          onCheckIn={handleCheckIn}
+          onCheckOut={handleCheckOut}
+          onApprove={handleApprove}
+          onReject={handleReject}
+        />
       )}
     </motion.div>
   );

@@ -462,8 +462,8 @@ export default function AdminDashboard({ visitors: propVisitors, onNavigate: ext
                         <tr key={v.id} style={{ cursor: "pointer" }} onClick={() => setSelectedVisitor(v)}>
                           <td>
                             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                              {v.photo ? (
-                                <img src={v.photo} alt={v.fullName} style={{ width: 34, height: 34, borderRadius: "50%", objectFit: "cover", border: "1px solid #e2e8f0" }} />
+                              {v.photoUrl || v.photo ? (
+                                <img src={v.photoUrl || v.photo} alt={v.fullName} style={{ width: 34, height: 34, borderRadius: "50%", objectFit: "cover", border: "1px solid #e2e8f0" }} />
                               ) : (
                                 <div style={{ width: 34, height: 34, borderRadius: "50%", background: "linear-gradient(135deg, #ccfbf1, #c7d2fe)", display: "flex", alignItems: "center", justifyContent: "center", color: "#4f46e5", fontWeight: 700, fontSize: 13 }}>
                                   {v.fullName.charAt(0)}

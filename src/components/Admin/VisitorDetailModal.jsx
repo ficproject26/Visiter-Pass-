@@ -8,7 +8,7 @@ export default function VisitorDetailModal({ visitor: initialVisitor, onClose, o
 
   React.useEffect(() => {
     setVisitor(initialVisitor);
-    if (initialVisitor && (!initialVisitor.photo || !initialVisitor.idProof)) {
+    if (initialVisitor && (!(initialVisitor.photo || initialVisitor.photoUrl) || !(initialVisitor.idProof || initialVisitor.idProofUrl))) {
       const fetchFullVisitor = async () => {
         try {
           setLoading(true);
@@ -66,9 +66,9 @@ export default function VisitorDetailModal({ visitor: initialVisitor, onClose, o
         {/* Modal Header */}
         <div style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)", padding: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            {visitor.photo ? (
+            {visitor.photoUrl || visitor.photo ? (
               <img 
-                src={visitor.photo} 
+                src={visitor.photoUrl || visitor.photo} 
                 alt={visitor.fullName} 
                 style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: "1.5px solid rgba(255,255,255,0.2)" }} 
               />
@@ -173,6 +173,35 @@ export default function VisitorDetailModal({ visitor: initialVisitor, onClose, o
               ))}
             </div>
           </div>
+
+          {/* ID Proof Preview */}
+          {(visitor.idProofUrl || visitor.idProof) && (
+            <div style={{ marginTop: 8, padding: "16px", background: "#f8fafc", borderRadius: 16, border: "1px solid #e2e8f0" }}>
+              <div style={{ fontSize: 11, color: "#94a3b8", fontWeight: 600, marginBottom: 8, textTransform: "uppercase" }}>Submitted ID Proof Document</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <a 
+                  href={visitor.idProofUrl || visitor.idProof} 
+                  target="_blank" 
+                  rel="noreferrer"
+                  style={{ display: "inline-block", cursor: "zoom-in", width: "fit-content" }}
+                >
+                  <img 
+                    src={visitor.idProofUrl || visitor.idProof} 
+                    alt="ID Proof Document" 
+                    style={{ maxWidth: "100%", maxHeight: 160, borderRadius: 10, objectFit: "contain", border: "1px solid #cbd5e1", transition: "transform 0.2s" }} 
+                  />
+                </a>
+                <a 
+                  href={visitor.idProofUrl || visitor.idProof} 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  style={{ fontSize: 12, color: "#4f46e5", fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 4 }}
+                >
+                  View ID Proof Full Size ↗
+                </a>
+              </div>
+            </div>
+          )}
 
         </div>
 
